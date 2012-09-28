@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from django.db.models.query import QuerySet, ValuesQuerySet
+from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
 
 try:
     import gviz_api
@@ -157,7 +157,7 @@ class GChartsValuesQuerySet(GChartsQuerySet, ValuesQuerySet):
         super(GChartsValuesQuerySet, self).__init__(*args, **kwargs)
 
 
-class GChartsValuesListQuerySet(GChartsValuesQuerySet):
+class GChartsValuesListQuerySet(GChartsValuesQuerySet, ValuesListQuerySet):
     def __init__(self, *args, **kwargs):
         super(GChartsValuesListQuerySet, self).__init__(*args, **kwargs)
         
