@@ -13,8 +13,6 @@ setup(
     author = "Rolf Håvard Blindheim",
     author_email = "rhblind@gmail.com",
     url = "http://github.com/rhblind/django-gcharts",
-    install_requires = ["Django>=1.0"],
-    zip_safe = False,
     packages = [
         "gcharts",
         "gcharts.templatetags"
