@@ -1,0 +1,17 @@
+*.a
+*.class
+*.dll
+*.dylib
+*.exe
+*.o
+*.obj
+*.pyc
+*.pyo
+*.so
+*.log
+.svn
+_svn
+.DS_Store
+.project
+.pydevproject
+.settings
