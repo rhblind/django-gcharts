@@ -15,6 +15,7 @@ setup(
     url = "http://github.com/rhblind/django-gcharts",
     packages = [
         "gcharts",
+        "gcharts.tests",
         "gcharts.templatetags"
     ],
     package_data = {
