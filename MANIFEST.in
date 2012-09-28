@@ -1,3 +1,2 @@
 recursive include gcharts/templates *.html
 include LICENSE.md
-include README.md
