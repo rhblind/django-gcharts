@@ -162,7 +162,7 @@ class GChartsQuerySet(QuerySet):
                                         data=self.values(*fields))
         return data_table.ToHtml(columns_order=properties["order"])
     
-    def to_csv(self, seperator=",", **kwargs):
+    def to_csv(self, separator=",", **kwargs):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as a csv string.
@@ -172,7 +172,7 @@ class GChartsQuerySet(QuerySet):
         its documentation.
         
         kwargs:
-            seperator: character to be used as seperator. Defaults
+            separator: character to be used as separator. Defaults
                     to comma(,).
             order:  Iterable with field names in which the
                     columns should be ordered. If columns order
@@ -189,7 +189,7 @@ class GChartsQuerySet(QuerySet):
         data_table = gviz_api.DataTable(table_description=properties["description"],
                                         custom_properties=properties["properties"],
                                         data=self.values(*fields))
-        return data_table.ToCsv(columns_order=properties["order"], seperator=seperator)
+        return data_table.ToCsv(columns_order=properties["order"], separator=separator)
     
     def to_tsv_excel(self, **kwargs):
         """
