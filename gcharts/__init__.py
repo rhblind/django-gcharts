@@ -13,9 +13,6 @@ class GChartsManager(models.Manager):
     def get_query_set(self):
         return GChartsQuerySet(self.model, using=self._db)
     
-    def to_string(self, *args, **kwargs):
-        return self.get_query_set().to_string(*args, **kwargs)
-    
     def to_javascript(self, name, *args, **kwargs):
         return self.get_query_set().to_javascript(name, *args, **kwargs)
     
@@ -34,9 +31,6 @@ class GChartsManager(models.Manager):
     def to_json_response(self, *args, **kwargs):
         return self.get_query_set().to_json_response(*args, **kwargs)
     
-    def to_response(self, *args, **kwargs):
-        return self.get_query_set().to_response(*args, **kwargs)
-
 
 class GChartsQuerySet(QuerySet):
     """
@@ -92,43 +86,201 @@ class GChartsQuerySet(QuerySet):
         return self._clone(klass=GChartsValuesQuerySet, setup=True, _fields=fields)
     
     def values_list(self, *fields, **kwargs):
-        flat = kwargs.pop('flat', False)
+        flat = kwargs.pop("flat", False)
         if kwargs:
-            raise TypeError('Unexpected keyword arguments to values_list: %s'
+            raise TypeError("Unexpected keyword arguments to values_list: %s"
                     % (kwargs.keys(),))
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         return self._clone(klass=GChartsValuesListQuerySet, setup=True, flat=flat,
                 _fields=fields)
     
+    def get_properties(self, **kwargs):
+        """
+        Return properties from kwargs, or set default if not set.
+        """
+        properties = {
+            "order":  kwargs.pop("order", None),
+            "properties": kwargs.pop("properties", {}),
+            "description": self.table_description(labels=kwargs.pop("labels", {}))
+        }
+        return properties
+        
     #
-    # Methods which serialize data to various outputs
-    # These methods does _not_ return a new QuerySet
-    #
+    # Methods which serialize data to various outputs.
+    # These methods are just a convenient wrapper to the
+    # methods in the gviz_api calls.
+    # 
+    def to_javascript(self, name, **kwargs):
+        """
+        Does _not_ return a new QuerySet.
+        Return QuerySet data as javascript code string.
+        
+        This method writes a string of JS code that can be run to
+        generate a DataTable with the specified data. Typically used 
+        for debugging only.
+        
+        kwargs:
+            name:   Name of the variable which the data table
+                    is saved.
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
+                    where field is the name of the field in model,
+                    and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
+        """
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
+                                        data=self.values(*fields))
+        return data_table.ToJSCode(name=name, columns_order=properties["order"])
+    
+    def to_html(self, **kwargs):
+        """
+        Does _not_ return a new QuerySet.
+        Return QuerySet data as a html table code string.
+        
+        kwargs:
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
+                    where field is the name of the field in model,
+                    and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
+        """
+        
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
+                                        data=self.values(*fields))
+        return data_table.ToHtml(columns_order=properties["order"])
+    
+    def to_csv(self, seperator=",", **kwargs):
+        """
+        Does _not_ return a new QuerySet.
+        Return QuerySet data as a csv string.
+        
+        Output is encoded in UTF-8 because the Python "csv" 
+        module can't handle Unicode properly according to 
+        its documentation.
+        
+        kwargs:
+            seperator: character to be used as seperator. Defaults
+                    to comma(,).
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
+                    where field is the name of the field in model,
+                    and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
+        """
+        
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
+                                        data=self.values(*fields))
+        return data_table.ToCsv(columns_order=properties["order"], seperator=seperator)
+    
+    def to_tsv_excel(self, **kwargs):
+        """
+        Does _not_ return a new QuerySet.
+        Returns a file in tab-separated-format readable by MS Excel.
+        
+        Returns a file in UTF-16 little endian encoding, with tabs 
+        separating the values.
+        
+        kwargs:
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
+                    where field is the name of the field in model,
+                    and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
+        """
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
+                                        data=self.values(*fields))
+        return data_table.ToTsvExcel(columns_order=properties["order"])
     
     def to_json(self, **kwargs):
         """
+        Does _not_ return a new QuerySet.
         Return QuerySet data as json serialized string.
         
+        This method writes a JSON string that can be passed directly into a Google
+        Visualization API DataTable constructor. Use this output if you are
+        hosting the visualization HTML on your site, and want to code the data
+        table in Python. Pass this string into the
+        google.visualization.DataTable constructor, e.g,:
+          ... on my page that hosts my visualization ...
+          google.setOnLoadCallback(drawTable);
+          function drawTable() {
+            var data = new google.visualization.DataTable(_my_JSon_string, 0.6);
+            myTable.draw(data);
+          }
+        
         kwargs:
-            columns_order: iterable with field names in which the
-                    columns should be ordered.
-            labels: dictionary mapping {'field': 'label'}
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
         """
-        
-        labels = kwargs.pop("labels", {})
-        columns_order = kwargs.pop("columns_order", None)
-
-        assert isinstance(labels, dict), \
-            "labels must be a dictionary {'field_name': 'label'}"
-        
-        table_description = self.table_description(labels=labels)
-        fields = table_description.keys()
-        data_table = gviz_api.DataTable(table_description=table_description,
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
                                         data=self.values(*fields))
-        return data_table.ToJSon(columns_order=columns_order)
+        return data_table.ToJSon(columns_order=properties["order"])
+    
+    def to_json_response(self, handler="google.visualization.Query.setResponse",
+                         req_id=0, **kwargs):
+        """
+        Does _not_ return a new QuerySet.
+        Writes a table as a JSON response that can be returned as-is to a client.
+
+        This method writes a JSON response to return to a client in response to a
+        Google Visualization API query. This string can be processed by the calling
+        page, and is used to deliver a data table to a visualization hosted on
+        a different page.
+        
+        kwargs:
+            req_id: Response id, as retrieved by the request.
+            handler: The response handler, as retrieved by the
+                    request.
+            order:  Iterable with field names in which the
+                    columns should be ordered. If columns order
+                    are specified, any field not specified will be
+                    discarded.
+            labels: Dictionary mapping {'field': 'label'}
+                    where field is the name of the field in model,
+                    and label is the desired label on the chart.
+            properties: Dictionary with custom properties.
+        """
+        properties = self.get_properties(**kwargs)
+        fields = properties["description"].keys()
+        data_table = gviz_api.DataTable(table_description=properties["description"],
+                                        custom_properties=properties["properties"],
+                                        data=self.values(*fields))
+        return data_table.ToJSonResponse(columns_order=properties["order"], 
+                                         response_handler=handler, req_id=req_id)
     
     #
     # Methods that modifies database are not allowed
