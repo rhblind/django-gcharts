@@ -12,7 +12,7 @@ from django.template.loader import render_to_string
 register = template.Library()
 
 _api = getattr(settings, "GOOGLECHARTS_API", "1.1")
-_packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart", "table"])
+_packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart"])
 
 def _remove_quotes(s):
     if s[0] in ('"', "'") and s[-1] == s[0]:
