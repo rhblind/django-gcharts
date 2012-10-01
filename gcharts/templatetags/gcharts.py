@@ -8,12 +8,11 @@
 from django.conf import settings
 from django import template
 from django.template.loader import render_to_string
-from django.utils.safestring import mark_safe
 
 register = template.Library()
 
 _api = getattr(settings, "GOOGLECHARTS_API", "1.1")
-_packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart"])
+_packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart", "table"])
 
 def _remove_quotes(s):
     if s[0] in ('"', "'") and s[-1] == s[0]:
@@ -31,8 +30,8 @@ class GChartsNode(template.Node):
     
     def render(self, context):
         js = self._nodelist.render(context)
-        return self.render_template('gcharts/gcharts.html', googlecharts_js=js,
-                                    api=_api, packages=mark_safe(_packages))
+        return self.render_template("gcharts/gcharts.html", googlecharts_js=js,
+                                    api=_api, packages=_packages)
 
 @register.tag
 def gcharts(parser, token):
@@ -96,4 +95,5 @@ def render(parser, token):
         args.append('default')
     _, container, data, options = [_remove_quotes(s) for s in args]
     return RenderNode(container=container, data=data, options=options)
+
 

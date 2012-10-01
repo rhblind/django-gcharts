@@ -38,6 +38,6 @@
         }
     }
     
-    google.load("visualization", "{{ api }}", {packages: "{{ packages }}"});
+    google.load("visualization", "{{ api }}", {packages: [{% for pkg in packages %}"{{ pkg }}"{% if not forloop.last %},{% endif %}{% endfor %}]});
     google.setOnLoadCallback(googlecharts_main);
 </script>
