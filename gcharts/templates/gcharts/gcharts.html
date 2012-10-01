@@ -1,0 +1,43 @@
+<!-- This code is copied from mvasilkov's django-google-charts on github
+	 (https://github.com/mvasilkov/django-google-charts) and licensed under the MIT License -->
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+<script type="text/javascript">
+    (function() {
+        function _clone(obj) {
+            if (obj instanceof Array) {
+                var copy = [];
+                for (var i = 0; i < obj.length; ++i) {
+                    copy[i] = _clone(obj[i]);
+                }
+                return copy;
+            }
+            else if (obj instanceof Object) {
+                var copy = {};
+                for (var i in obj) {
+                    if (obj.hasOwnProperty(i)) {
+                        copy[i] = _clone(obj[i]);
+                    }
+                }
+                return copy;
+            }
+            return obj;
+        }
+        googlecharts = [];
+        var opt;
+        {{ googlecharts_js|safe }}
+    })();
+    
+    function googlecharts_main() {
+        if (typeof googlecharts == "undefined") return;
+        for (var i = 0; i < googlecharts.length; ++i) {
+        	var c = googlecharts[i];
+        	var datatable = new google.visualization.DataTable(c.data);
+        	c.container = document.getElementById(c.container);
+        	var chart = new google.visualization[c.kind](c.container);
+            chart.draw(datatable, c.options);
+        }
+    }
+    
+    google.load("visualization", "{{ api }}", {packages: "{{ packages }}"});
+    google.setOnLoadCallback(googlecharts_main);
+</script>
