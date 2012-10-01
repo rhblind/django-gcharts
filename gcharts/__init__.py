@@ -73,23 +73,27 @@ class GChartsQuerySet(QuerySet):
         """
         # TODO: 
         #    - Implement support for extra fields
+        #    - Implement support for extra aggregates
         #    - Implement support for formatting on field values
         table_description = {}
         labels = labels or {}
         fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
         
+        if hasattr(self, "aggregate_names"):
+            fields += self.aggregate_names
+        
         for f in fields:
             try:
                 if "__" in f:
-                    # related field
+                    # some kind lookup field
                     field, rel_field = f.split("__")
                     field = self.model._meta.get_field(field)
-                    if (hasattr(field, "rel") and field.rel.to):
+                    if (hasattr(field, "rel") and field.rel):
                         model = field.rel.to
-                        rel_field = model._meta.get_field(rel_field)
-                        rel_field_jstype = self.javascript_field(rel_field)
-                        label = labels.pop(f, f)
-                        table_description.update({f: (rel_field_jstype, label)})
+                        field = model._meta.get_field(rel_field)
+                    field_jstype = self.javascript_field(field)
+                    label = labels.pop(f, f)
+                    table_description.update({f: (field_jstype, label)})
                 else:
                     field = self.model._meta.get_field(f)
                     if field.attname in labels:
@@ -101,6 +105,8 @@ class GChartsQuerySet(QuerySet):
                 # Silently pass non-existent fields.
                 # TODO: Fix this!
                 continue
+            except Exception, e:
+                raise e
         return table_description
     
     def values(self, *fields):
