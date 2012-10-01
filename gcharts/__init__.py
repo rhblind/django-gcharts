@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
+from django.db.models.fields import FieldDoesNotExist
 
 try:
     import gviz_api
@@ -13,23 +14,25 @@ class GChartsManager(models.Manager):
     def get_query_set(self):
         return GChartsQuerySet(self.model, using=self._db)
     
-    def to_javascript(self, name, *args, **kwargs):
-        return self.get_query_set().to_javascript(name, *args, **kwargs)
+    def to_javascript(self, name, order=None, labels=None, properties=None):
+        return self.get_query_set().to_javascript(name, order, labels, properties)
     
-    def to_html(self, *args, **kwargs):
-        return self.get_query_set().to_html(*args, **kwargs)
+    def to_html(self, order=None, labels=None, properties=None):
+        return self.get_query_set().to_html(order, labels, properties)
     
-    def to_csv(self, *args, **kwargs):
-        return self.get_query_set().to_csv(*args, **kwargs)
+    def to_csv(self, order=None, labels=None, properties=None, separator=","):
+        return self.get_query_set().to_csv(order, labels, properties, separator)
     
-    def to_tsv_excel(self, *args, **kwargs):
-        return self.get_query_set().to_tsv_excel(*args, **kwargs)
+    def to_tsv_excel(self, order=None, labels=None, properties=None):
+        return self.get_query_set().to_tsv_excel(order, labels, properties)
     
-    def to_json(self, **kwargs):
-        return self.get_query_set().to_json(**kwargs)
+    def to_json(self, order=None, labels=None, properties=None):
+        return self.get_query_set().to_json(order, labels, properties)
     
-    def to_json_response(self, *args, **kwargs):
-        return self.get_query_set().to_json_response(*args, **kwargs)
+    def to_json_response(self, order=None, labels=None, properties=None,
+                     req_id=0, handler="google.visualization.Query.setResponse"):
+        return self.get_query_set().to_json_response(order, labels, properties,
+                                                     req_id, handler)
     
 
 class GChartsQuerySet(QuerySet):
@@ -40,7 +43,7 @@ class GChartsQuerySet(QuerySet):
     def __init__(self, *args, **kwargs):
         super(GChartsQuerySet, self).__init__(*args, **kwargs)
         
-    def __javascript_field__(self, field):
+    def javascript_field(self, field):
         """
         Return the javascript data type for
         field
@@ -64,23 +67,39 @@ class GChartsQuerySet(QuerySet):
         # Should never hit this
         raise KeyError("%s is not a valid field" % field)
     
-    def table_description(self, **kwargs):
+    def table_description(self, labels=None):
         """
         Create table description for QuerySet
         """
-        # TODO: Implement support for extra fields
-        table = {}
-        labels = kwargs.pop("labels", {})
+        # TODO: - Implement support for extra fields
+        table_description = {}
+        labels = labels or {}
         fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
-        defaults = dict([(k, k) for k in fields])
-        for f in self.model._meta.fields:
-            if f.attname in labels:
-                labels[f.name] = labels.pop(f.attname)
-            defaults.update(**labels)
-            if f.name in defaults:
-                f_jstype = self.__javascript_field__(f)
-                table.update({f.name: (f_jstype, defaults[f.name])})
-        return table
+        
+        for f in fields:
+            try:
+                if "__" in f:
+                    # related field
+                    field, rel_field = f.split("__")
+                    field = self.model._meta.get_field(field)
+                    if (hasattr(field, "rel") and field.rel.to):
+                        model = field.rel.to
+                        rel_field = model._meta.get_field(rel_field)
+                        rel_field_jstype = self.javascript_field(rel_field)
+                        label = labels.pop(f, f)
+                        table_description.update({f: (rel_field_jstype, label)})
+                else:
+                    field = self.model._meta.get_field(f)
+                    if field.attname in labels:
+                        labels[field.name] = labels.pop(field.attname) 
+                    label = labels.pop(field.name, f)
+                    field_jstype = self.javascript_field(field)
+                    table_description.update({field.name: (field_jstype, label)})
+            except FieldDoesNotExist:
+                # Silently pass non-existent fields.
+                # TODO: Fix this!
+                continue
+        return table_description
     
     def values(self, *fields):
         return self._clone(klass=GChartsValuesQuerySet, setup=True, _fields=fields)
@@ -94,24 +113,14 @@ class GChartsQuerySet(QuerySet):
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         return self._clone(klass=GChartsValuesListQuerySet, setup=True, flat=flat,
                 _fields=fields)
-    
-    def get_properties(self, **kwargs):
-        """
-        Return properties from kwargs, or set default if not set.
-        """
-        properties = {
-            "order":  kwargs.pop("order", None),
-            "properties": kwargs.pop("properties", {}),
-            "description": self.table_description(labels=kwargs.pop("labels", {}))
-        }
-        return properties
+
         
     #
     # Methods which serialize data to various outputs.
     # These methods are just a convenient wrapper to the
     # methods in the gviz_api calls.
     # 
-    def to_javascript(self, name, **kwargs):
+    def to_javascript(self, name, order=None, labels=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as javascript code string.
@@ -132,14 +141,14 @@ class GChartsQuerySet(QuerySet):
                     and label is the desired label on the chart.
             properties: Dictionary with custom properties.
         """
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToJSCode(name=name, columns_order=properties["order"])
+        return data_table.ToJSCode(name=name, columns_order=order)
     
-    def to_html(self, **kwargs):
+    def to_html(self, order=None, labels=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as a html table code string.
@@ -155,14 +164,14 @@ class GChartsQuerySet(QuerySet):
             properties: Dictionary with custom properties.
         """
         
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToHtml(columns_order=properties["order"])
+        return data_table.ToHtml(columns_order=order)
     
-    def to_csv(self, separator=",", **kwargs):
+    def to_csv(self, order=None, labels=None, properties=None, separator=","):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as a csv string.
@@ -184,14 +193,14 @@ class GChartsQuerySet(QuerySet):
             properties: Dictionary with custom properties.
         """
         
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToCsv(columns_order=properties["order"], separator=separator)
+        return data_table.ToCsv(columns_order=order, separator=separator)
     
-    def to_tsv_excel(self, **kwargs):
+    def to_tsv_excel(self, order=None, labels=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Returns a file in tab-separated-format readable by MS Excel.
@@ -209,14 +218,14 @@ class GChartsQuerySet(QuerySet):
                     and label is the desired label on the chart.
             properties: Dictionary with custom properties.
         """
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToTsvExcel(columns_order=properties["order"])
+        return data_table.ToTsvExcel(columns_order=order)
     
-    def to_json(self, **kwargs):
+    def to_json(self, order=None, labels=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as json serialized string.
@@ -243,15 +252,15 @@ class GChartsQuerySet(QuerySet):
                     and label is the desired label on the chart.
             properties: Dictionary with custom properties.
         """
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToJSon(columns_order=properties["order"])
+        return data_table.ToJSon(columns_order=order)
     
-    def to_json_response(self, handler="google.visualization.Query.setResponse",
-                         req_id=0, **kwargs):
+    def to_json_response(self, order=None, labels=None, properties=None,
+                 req_id=0, handler="google.visualization.Query.setResponse"):
         """
         Does _not_ return a new QuerySet.
         Writes a table as a JSON response that can be returned as-is to a client.
@@ -274,13 +283,13 @@ class GChartsQuerySet(QuerySet):
                     and label is the desired label on the chart.
             properties: Dictionary with custom properties.
         """
-        properties = self.get_properties(**kwargs)
-        fields = properties["description"].keys()
-        data_table = gviz_api.DataTable(table_description=properties["description"],
-                                        custom_properties=properties["properties"],
+        table_descr = self.table_description(labels)
+        fields = table_descr.keys()
+        data_table = gviz_api.DataTable(table_description=table_descr,
+                                        custom_properties=properties, 
                                         data=self.values(*fields))
-        return data_table.ToJSonResponse(columns_order=properties["order"], 
-                                         response_handler=handler, req_id=req_id)
+        return data_table.ToJSonResponse(columns_order=order, 
+                             req_id=req_id, response_handler=handler)
     
     #
     # Methods that modifies database are not allowed
