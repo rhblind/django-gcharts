@@ -71,7 +71,9 @@ class GChartsQuerySet(QuerySet):
         """
         Create table description for QuerySet
         """
-        # TODO: - Implement support for extra fields
+        # TODO: 
+        #    - Implement support for extra fields
+        #    - Implement support for formatting on field values
         table_description = {}
         labels = labels or {}
         fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
