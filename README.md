@@ -19,5 +19,35 @@ As I find mvasilkov's approach very clever, I think it's can be done easier. My 
 which we are all familiar with, and create a custom manager which can be hooked into the models you wish to draw a chart for.
 This is really just a simple wrapper to Google's gviz_api module (which is a requirement for this module to work. See above.).
 
+### Configuration ###
+
+#### settings.py ####
+        GOOGLECHARTS_API = "1.1"
+        GOOGLECHARTS_PACKAGES = ["corechart"]
+
+* GOOGLECHARTS_API - Optional. Defaults to 1.1
+* GOOGLECHARTS_PACKAGES - Optional. List of packages that should be loaded. Defaults to only "corechart".
+  
+#### Packages ####
+* corechart contains these charts
+  * [AreaChart](https://developers.google.com/chart/interactive/docs/gallery/areachart)
+  * [BarChart](https://developers.google.com/chart/interactive/docs/gallery/barchart)
+  * [BubbleChart](https://developers.google.com/chart/interactive/docs/gallery/bubblechart)
+  * [CandleStickChart](https://developers.google.com/chart/interactive/docs/gallery/candlestickchart)
+  * [ColumnChart](https://developers.google.com/chart/interactive/docs/gallery/columnchart)
+  * [ComboChart](https://developers.google.com/chart/interactive/docs/gallery/combochart)
+  * [LineChart](https://developers.google.com/chart/interactive/docs/gallery/linechart)
+  * [PieChart](https://developers.google.com/chart/interactive/docs/gallery/piechart)
+  * [ScatterChart](https://developers.google.com/chart/interactive/docs/gallery/scatterchart)
+  * [SteppedAreaChart](https://developers.google.com/chart/interactive/docs/gallery/steppedareachart)
+* gauge
+  * [Gauge](https://developers.google.com/chart/interactive/docs/gallery/gauge)
+* geochart
+  * [GeoChart](https://developers.google.com/chart/interactive/docs/gallery/geochart)
+* table
+  * [TableChart](https://developers.google.com/chart/interactive/docs/gallery/table)
+* treemap
+  * [TreeMap](https://developers.google.com/chart/interactive/docs/gallery/treemap)
+
 ### Examples ###
 Coming soon™
