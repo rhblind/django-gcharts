@@ -168,6 +168,5 @@ Spam Inc. needs to chart how much spam they sell.
 ...
 
 Should output something like this.
-![django-gcharts-example](example.png)
 
-Coming soon™
+![django-gcharts-example](/example.png)
