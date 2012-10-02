@@ -163,9 +163,9 @@ class GChartsQuerySet(QuerySet):
                         table_description.update({f_name: (rel_field_jstype, label)})
         
         clean_parsed_fields()
-        for f in fields:
-            # DEBUG:
-            raise Exception("Could not create table description for field %s" % f)
+        if fields:
+            logger.warning("Could not create table description for the following fields %s:" % \
+                           ", ".join(fields))
         return table_description
         
         
