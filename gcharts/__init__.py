@@ -9,6 +9,9 @@ try:
 except ImportError:
     raise ImportError("You must install the gviz_api library.")
 
+class LabelError(Exception):
+    pass
+
 class GChartsManager(models.Manager):
     
     def get_query_set(self):
@@ -69,64 +72,81 @@ class GChartsQuerySet(QuerySet):
     
     def table_description(self, labels=None):
         """
-        Create table description for QuerySet
+        Return table description for QuerySet.
         """
-        # TODO: 
-        #    - Implement support for formatting on field values
         table_description = {}
         labels = labels or {}
         
-        # Get a list of fields of interest
-        fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
-        if hasattr(self, "aggregate_names"):
-            fields += self.aggregate_names
-        if hasattr(self, "extra_names"):
-            fields += self.extra_names
+        # resolve aggregates
+        aggregates = getattr(self, "aggregate_names", None)
+        if aggregates is not None:
+            for alias, aggregate_expr in self.query.aggregates.iteritems():
+                label = labels.pop(alias, alias)
+                field_jstype = self.javascript_field(aggregate_expr.field)
+                table_description.update({alias: (field_jstype, label)})
         
-        for f in fields:
-            try:
-                # Label and field can be specified in the labels dict
-                # as follows:
-                # labels={field_name: {"Field Label": "field type"}}
-                if (f in labels and isinstance(labels.get(f, None), dict)):
-                    field_descr = labels.pop(f)
-                    if not len(field_descr) == 1:
-                        raise Exception("Field description can only contain one entry.")
-                    label, field_jstype = field_descr.popitem()
-                    if field_jstype not in ("string", "number", "boolean", 
-                                            "date", "datetime", "timeofday"):
-                        raise Exception("Incorrect javascript field type")
-                    table_description.update({f: (field_jstype, label)})
-                
-                # If field contains a double underscore, this is some
-                # kind of lookup field.
-                elif "__" in f:
-                    field, rel_field = f.split("__")
+        # resolve extra fields
+        # Extra fields need to be defined manually in the labels
+        # dict as follows: labels={"extra_name": {"javascript type": "label"}, ... }
+        extra = getattr(self, "extra_names", None)
+        valid_jstypes = ("string", "number", "boolean", "date", "datetime", "timeofday")
+        if extra is not None:
+            for alias in self.query.extra.iterkeys():
+                try:
+                    descr = labels.pop(alias)
+                    if (not isinstance(descr, dict) and len(descr)) == 1:
+                        raise Exception("Field description must be a dict and must contain exactly one element.")
+                    field_jstype, label = descr.popitem()
+                    if field_jstype not in valid_jstypes:
+                        raise Exception("Invalid javascript type. Valid types are %s." % \
+                                        ", ".join(valid_jstypes))
+                    table_description.update({alias: (field_jstype, label)})
+                except KeyError:
+                    raise KeyError("No label found for extra field '%s'. Extra field labels must be configured as: labels={'extra_name': {'javascript type', 'label'}}" % alias)
+                except Exception, e:
+                    raise e
+        
+        # resolve other fields of interest
+        fields = set(getattr(self, "_fields", self.model._meta.get_all_field_names()))
+        
+        # remove fields that has already been 
+        # put in the table_description
+        def clean_parsed_fields():
+            for f in table_description.iterkeys():
+                if f in fields:
+                    fields.remove(f) 
+        clean_parsed_fields()
+        
+        for f_name in fields:
+            # local fields
+            if f_name in self.model._meta.get_all_field_names():
+                field = self.model._meta.get_field(f_name)
+                if field.attname in labels:
+                    labels[field.name] = labels.pop(field.attname)
+                label = labels.pop(field.name)
+                field_jstype = self.javascript_field(field)
+                table_description.update({field.name: (field_jstype, label)})
+            else:
+                # lookup fields (with double underscore) left in fields set
+                # should now only be join fields, and be present in the
+                # self.query.select_fields list.
+                if "__" in f_name:
+                    field, rel_field = f_name.split("__")
                     field = self.model._meta.get_field(field)
-                    if (hasattr(field, "rel") and field.rel):
-                        model = field.rel.to
-                        field = model._meta.get_field(rel_field)
-                    field_jstype = self.javascript_field(field)
-                    label = labels.pop(f, f)
-                    table_description.update({f: (field_jstype, label)})
-                
-                # Local fields are looked up in the models
-                # _meta class
-                else:
-                    field = self.model._meta.get_field(f)
-                    if field.attname in labels:
-                        labels[field.name] = labels.pop(field.attname) 
-                    label = labels.pop(field.name, f)
-                    field_jstype = self.javascript_field(field)
-                    table_description.update({field.name: (field_jstype, label)})
-            except FieldDoesNotExist, e:
-                if f in self.extra_names:
-                    raise FieldDoesNotExist("Extra fields needs to be specified in the labels dict.")
-                raise e
-            except Exception, e:
-                raise e
+                    relation = getattr(field, "related", None)
+                    if relation is not None:
+                        rel_field = relation.parent_model._meta.get_field(rel_field)
+                        label = labels.pop(f_name, f_name)
+                        rel_field_jstype = self.javascript_field(rel_field)
+                        table_description.update({f_name: (rel_field_jstype, label)})
+        
+        clean_parsed_fields()
+        for f in fields:
+            # DEBUG:
+            raise Exception("Could not create table description for field %s" % f)
         return table_description
-    
+        
+        
     def values(self, *fields):
         return self._clone(klass=GChartsValuesQuerySet, setup=True, _fields=fields)
     
