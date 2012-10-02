@@ -15,9 +15,13 @@ and some of the code (template tags and javascript code) are directly copied fro
 make it work for my approach.
 
 ### About django-gcharts ###
-As I find mvasilkov's approach very clever, I think it's can be done easier. My solution is to subclass the QuerySet
-which we are all familiar with, and create a custom manager which can be hooked into the models you wish to draw a chart for.
-This is really just a simple wrapper to Google's gviz_api module (which is a requirement for this module to work. See above.).
+As I find mvasilkov's approach very clever, I think it would've been nice if the model could deliver it's data in a format
+the Google Charts API can read.
+
+This library is an attempt of doing that, by using a custom QuerySet and Manager which is plugged directly into the model,
+and some wrapper methods to bind the QuerySet data up against the gviz_api library.
+The goal is to "fully" support the QuerySet (with aggregates, joins, extra, annotates, etc) so that we can gather data
+by using familiar QuerySet syntax.
 
 ### Configuration ###
 
