@@ -80,5 +80,91 @@ Register the GChartsManager to the model you'd like to draw charts from
                 ...
                 
                 
-### Examples ###
+## Examples ##
+
+Spam Inc. needs to chart how much spam they sell.
+
+**models.py**
+        
+        from django.db import models
+        from gcharts import GChartsManager
+        
+        class Spam(models.Model):
+                
+                gcharts = GChartsManager()
+                objects = models.Manager()
+                
+                name = models.Charfield(max_length=10)
+                ...
+                ...
+                cdt = models.DateTimeField(auto_add_now=True, verbose_name="Creation datetime")
+                
+
+**views.py**
+        
+        from dateutil.relativedelta import relativedelta
+        from django.shortcuts import render_to_response
+        from django.template.context import RequestContext
+        
+        from models import Spam
+        
+        def render_chart(request):
+                if request.method == "GET":
+                        
+                        # Get a point in time we want to render chart from
+                        series_age = datetime.today() - relativedelta(months=3)
+                        
+                        # Create a fairly advanced QuerySet using:
+                        #  - filter() to get records newer than 'series_age'
+                        #  - extra() to cast a PostgreSQL 'timestampz' to 'date' which translates to a pyton date object
+                        #  - values() to extract fields of interest
+                        #  - annotate() to group aggregate Count into 'id__count'
+                        #  - order_by() to make the aggregate work
+                        qset = Spam.gcharts.filter(cdt__gt=series_age).extra(select={"date": "cdt::date"}) \
+                                                   .values("date").annotate(Count("id")).order_by()
+                        
+                        # Call the qset.to_json() method to output the data in json
+                        #  - labels is a dict which sets labels and the correct javascript data type for
+                        #    fields in the QuerySet. The javascript data types are automatically set, 
+                        #    except for extra fields, which needs to be specified in a dict as:
+                        #       {'extra_name': {'javascript data type': 'label for field'}}
+                        #  - order is an iterable which sets the column order in which the data should be
+                        #    rendered
+                        spam_json = qset.to_json(labels={"id__count": "Spam sold", "date": {"date": "Date"}},
+                                                 order=("date", "id__count"))
+                        
+                        return render_to_response("sales_overviews/spamreport.html, {"spam_data": spam_json},
+                                                  context_instance=RequestContext(request))
+
+**spamreport.html**
+
+...
+
+        {% load gcharts %}
+
+        {% gcharts %}
+                <!-- Global options for all charts -->
+                options = {
+                        width: 500,
+                        height: 300
+                };
+            
+                <!-- cloned option and adapted for "spam_opt" -->
+                spam_opt = _clone(options);
+                spam_opt.title = "Units of Spam sold last 3 month";
+            
+                {% options spam_opt %}
+                        kind: "ColumnChart",
+                        options: spam_opt,
+                {% endoptions %}
+        
+                {% render "spam_chart" "spam_data" "spam_opt" %}
+        
+        {% endgcharts %}
+        
+        <div id="spam_chart">
+            <!-- container for spam_data chart -->
+        </div>
+...
+
 Coming soon™
