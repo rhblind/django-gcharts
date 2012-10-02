@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import logging
 from django.db import models
 from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
 from django.db.models.fields import FieldDoesNotExist
@@ -9,8 +9,30 @@ try:
 except ImportError:
     raise ImportError("You must install the gviz_api library.")
 
-class LabelError(Exception):
-    pass
+class _GChartsConfig(object):
+    
+    logger = None
+    
+    @classmethod
+    def get_logger(cls):
+        """
+        Instantiate and return a default logger.
+        The NullHandler logger does nothing, and is supposed 
+        to be overridden in settings.py by creating a logger
+        named 'gcharts'.
+        """
+        if cls.logger is None:
+            class NullHandler(logging.Handler):
+                def emit(self, record):
+                    pass
+            
+            cls.logger = logging.getLogger("gcharts")
+            cls.logger.addHandler(NullHandler())
+            
+        return cls.logger
+
+# Global logger
+logger = _GChartsConfig.get_logger()
 
 class GChartsManager(models.Manager):
     
@@ -107,7 +129,7 @@ class GChartsQuerySet(QuerySet):
                     raise e
         
         # resolve other fields of interest
-        fields = set(getattr(self, "_fields", self.model._meta.get_all_field_names()))
+        fields = set(getattr(self, "_fields", [f.name for f in self.model._meta.fields]))
         
         # remove fields that has already been 
         # put in the table_description
@@ -123,13 +145,13 @@ class GChartsQuerySet(QuerySet):
                 field = self.model._meta.get_field(f_name)
                 if field.attname in labels:
                     labels[field.name] = labels.pop(field.attname)
-                label = labels.pop(field.name)
+                label = labels.pop(field.name, field.name)
                 field_jstype = self.javascript_field(field)
                 table_description.update({field.name: (field_jstype, label)})
             else:
                 # lookup fields (with double underscore) left in fields set
                 # should now only be join fields, and be present in the
-                # self.query.select_fields list.
+                # local field.related.parent_model's field list
                 if "__" in f_name:
                     field, rel_field = f_name.split("__")
                     field = self.model._meta.get_field(field)
