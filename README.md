@@ -55,5 +55,26 @@ This is really just a simple wrapper to Google's gviz_api module (which is a req
 * treemap
   * [TreeMap](https://developers.google.com/chart/interactive/docs/gallery/treemap)
 
+
+#### models.py ####
+
+Register the GChartsManager to the model you'd like to draw charts from
+
+        from django.db import models
+        from gcharts import GChartsManager
+        
+        class MyModel(models.Model):
+                
+                # register the GChartsManager as a manager for this model
+                gcharts = GChartsManager()
+                # when using multiple managers, we need to specify the default 'objects' manager as well
+                objects = models.Manager()
+                
+                my_field = models.CharField(....)
+                my_other_field = models.IntegerField()
+                
+                ...
+                
+                
 ### Examples ###
 Coming soon™
