@@ -24,6 +24,12 @@ This is really just a simple wrapper to Google's gviz_api module (which is a req
 #### settings.py ####
         GOOGLECHARTS_API = "1.1"
         GOOGLECHARTS_PACKAGES = ["corechart"]
+        
+        INSTALLED_APPS = (
+                ...
+                'gcharts',
+                ...
+        )
 
 * GOOGLECHARTS_API - Optional. Defaults to 1.1
 * GOOGLECHARTS_PACKAGES - Optional. List of packages that should be loaded. Defaults to only "corechart".
