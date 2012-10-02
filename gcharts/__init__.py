@@ -72,20 +72,35 @@ class GChartsQuerySet(QuerySet):
         Create table description for QuerySet
         """
         # TODO: 
-        #    - Implement support for extra fields
-        #    - Implement support for extra aggregates
         #    - Implement support for formatting on field values
         table_description = {}
         labels = labels or {}
-        fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
         
+        # Get a list of fields of interest
+        fields = getattr(self, "field_names", self.model._meta.get_all_field_names())
         if hasattr(self, "aggregate_names"):
             fields += self.aggregate_names
+        if hasattr(self, "extra_names"):
+            fields += self.extra_names
         
         for f in fields:
             try:
-                if "__" in f:
-                    # some kind lookup field
+                # Label and field can be specified in the labels dict
+                # as follows:
+                # labels={field_name: {"Field Label": "field type"}}
+                if (f in labels and isinstance(labels.get(f, None), dict)):
+                    field_descr = labels.pop(f)
+                    if not len(field_descr) == 1:
+                        raise Exception("Field description can only contain one entry.")
+                    label, field_jstype = field_descr.popitem()
+                    if field_jstype not in ("string", "number", "boolean", 
+                                            "date", "datetime", "timeofday"):
+                        raise Exception("Incorrect javascript field type")
+                    table_description.update({f: (field_jstype, label)})
+                
+                # If field contains a double underscore, this is some
+                # kind of lookup field.
+                elif "__" in f:
                     field, rel_field = f.split("__")
                     field = self.model._meta.get_field(field)
                     if (hasattr(field, "rel") and field.rel):
@@ -94,6 +109,9 @@ class GChartsQuerySet(QuerySet):
                     field_jstype = self.javascript_field(field)
                     label = labels.pop(f, f)
                     table_description.update({f: (field_jstype, label)})
+                
+                # Local fields are looked up in the models
+                # _meta class
                 else:
                     field = self.model._meta.get_field(f)
                     if field.attname in labels:
@@ -101,10 +119,10 @@ class GChartsQuerySet(QuerySet):
                     label = labels.pop(field.name, f)
                     field_jstype = self.javascript_field(field)
                     table_description.update({field.name: (field_jstype, label)})
-            except FieldDoesNotExist:
-                # Silently pass non-existent fields.
-                # TODO: Fix this!
-                continue
+            except FieldDoesNotExist, e:
+                if f in self.extra_names:
+                    raise FieldDoesNotExist("Extra fields needs to be specified in the labels dict.")
+                raise e
             except Exception, e:
                 raise e
         return table_description
