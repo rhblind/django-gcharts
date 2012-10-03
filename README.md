@@ -23,9 +23,9 @@ and some wrapper methods to bind the QuerySet data up against the gviz_api libra
 The goal is to "fully" support the QuerySet (with aggregates, joins, extra, annotates, etc) so that we can gather data
 by using familiar QuerySet syntax.
 
-### Configuration ###
+## Configuration ##
 
-#### settings.py ####
+### settings.py ###
         GOOGLECHARTS_API = "1.1"
         GOOGLECHARTS_PACKAGES = ["corechart"]
         
@@ -35,11 +35,18 @@ by using familiar QuerySet syntax.
                 ...
         )
 
-* GOOGLECHARTS_API - Optional. Defaults to 1.1
-* GOOGLECHARTS_PACKAGES - Optional. List of packages that should be loaded. Defaults to only "corechart".
+ * `GOOGLECHARTS_API` - Optional. Defaults to 1.1
+ * `GOOGLECHARTS_PACKAGES` - Optional. List of packages that should be loaded. Defaults to only `corechart`.
   
-#### Packages ####
-* corechart contains these charts
+### Packages ###
+The charts in the Google Visualization API are separated into different packages. For the most basic charts
+you would only need to load the `corechart` package (which is the default if none is specified).
+Below follows a list of which charts are available in the different packages.
+
+**Please note that all packages specified is loaded each time the `{% gcharts %} ... {% endgcharts %}` block is loaded.**
+
+
+* `corechart` contains these charts
   * [AreaChart](https://developers.google.com/chart/interactive/docs/gallery/areachart)
   * [BarChart](https://developers.google.com/chart/interactive/docs/gallery/barchart)
   * [BubbleChart](https://developers.google.com/chart/interactive/docs/gallery/bubblechart)
@@ -50,17 +57,17 @@ by using familiar QuerySet syntax.
   * [PieChart](https://developers.google.com/chart/interactive/docs/gallery/piechart)
   * [ScatterChart](https://developers.google.com/chart/interactive/docs/gallery/scatterchart)
   * [SteppedAreaChart](https://developers.google.com/chart/interactive/docs/gallery/steppedareachart)
-* gauge
+* `gauge`
   * [Gauge](https://developers.google.com/chart/interactive/docs/gallery/gauge)
-* geochart
+* `geochart`
   * [GeoChart](https://developers.google.com/chart/interactive/docs/gallery/geochart)
-* table
+* `table`
   * [TableChart](https://developers.google.com/chart/interactive/docs/gallery/table)
-* treemap
+* `treemap`
   * [TreeMap](https://developers.google.com/chart/interactive/docs/gallery/treemap)
 
 
-#### models.py ####
+### models.py ###
 
 Register the GChartsManager to the model you'd like to draw charts from
 
