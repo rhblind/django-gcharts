@@ -138,7 +138,7 @@ Spam Inc. needs to chart how much spam they sell.
 
 **spamreport.html**
 
-...
+        ...
 
         {% load gcharts %}
 
@@ -165,7 +165,8 @@ Spam Inc. needs to chart how much spam they sell.
         <div id="spam_chart">
             <!-- container for spam_data chart -->
         </div>
-...
+        
+        ...
 
 Should output something like this.
 
