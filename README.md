@@ -65,7 +65,7 @@ current `{% gcharts %} ... {% endgcharts %}` block only.
 * `geochart`
   * [GeoChart](https://developers.google.com/chart/interactive/docs/gallery/geochart)
 * `table`
-  * [TableChart](https://developers.google.com/chart/interactive/docs/gallery/table)
+  * [Table](https://developers.google.com/chart/interactive/docs/gallery/table)
 * `treemap`
   * [TreeMap](https://developers.google.com/chart/interactive/docs/gallery/treemap)
 
