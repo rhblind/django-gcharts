@@ -20,7 +20,7 @@ _packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart"])
 
 for pkg in _packages:
     if pkg not in GOOGLECHARTS_PACKAGES:
-        raise ImproperlyConfigured("%s is not a valid package. Valid packages are" \
+        raise ImproperlyConfigured("%s is not a valid package. Valid packages are %s" \
                                    % (pkg, ", ".join(GOOGLECHARTS_PACKAGES)))
 
 def _remove_quotes(s):
