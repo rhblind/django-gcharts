@@ -16,7 +16,7 @@ make it work for my approach.
 
 ### About django-gcharts ###
 As I find mvasilkov's approach very clever, I think it would've been nice if the model could deliver it's data in a format
-the Google Charts API can read.
+the Google Visualization API can read.
 
 This library is an attempt of doing that, by using a custom QuerySet and Manager which is plugged directly into the model,
 and some wrapper methods to bind the QuerySet data up against the gviz_api library.
