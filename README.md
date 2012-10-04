@@ -44,9 +44,9 @@ you would only need to load the `corechart` package (which is the default if non
 Below follows a list of which charts are available in the different packages.
 
 **Please note that all packages specified is loaded each time the `{% gcharts %} ... {% endgcharts %}` block is loaded.**
-Optionally, this can be specified in the `{% render ... %}` tag as a the last option. The tag should in that case be 
-written as: `{% render "div_id" "data" "options" "package name" %}`. This will cause the package to be applied to the
-current `{% gcharts %} ... {% endgcharts %}` block only.
+Optionally, the package for the specific chart can be specified in the `{% render ... %}` tag as a the last option. 
+The tag should in that case be written as: `{% render "div_id" "data" "options" "package name" %}`. This will cause 
+the package to be applied to the current `{% gcharts %} ... {% endgcharts %}` block only.
 
 
 * `corechart` contains these charts
