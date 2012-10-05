@@ -4,10 +4,10 @@ Yet another Google Charts library for Django
 - See http://code.google.com/p/google-visualization-python/ for details.
 
 ## Note ##
-This library is yet in pre-alpha development mode, and only uploaded to github for the purpose of having it
-for my own sake. It's still not ready for use, do _NOT_ use this for anything except experimenting.
+This library is yet in pre-alpha development mode.
+It's still not ready for use, do _NOT_ use this for anything except experimenting.
 
-Please feel free to fork or submit patches ;)
+Please feel free submit patches/pull requests ;)
 
 ### Disclaimer ###
 This library is heavy influenced by [mvasilkov's django-google-charts](https://github.com/mvasilkov/django-google-charts),
@@ -15,7 +15,7 @@ and some of the code (template tags and javascript code) are directly copied fro
 make it work for my approach.
 
 ### About django-gcharts ###
-As I find mvasilkov's approach very clever, I think it would've been nice if the model could deliver it's data in a format
+As I find mvasilkov's approach very clever, I think it would be nice if the model could deliver it's data in a format
 the Google Visualization API can read.
 
 This library is an attempt of doing that, by using a custom QuerySet and Manager which is plugged directly into the model,
@@ -43,10 +43,13 @@ The charts in the Google Visualization API are separated into different packages
 you would only need to load the `corechart` package (which is the default if none is specified).
 Below follows a list of which charts are available in the different packages.
 
-**Please note that all packages specified is loaded each time the `{% gcharts %} ... {% endgcharts %}` block is loaded.**
+**Please note that all packages specified in settings.py will load every time the `{% gcharts %} ... {% endgcharts %}`
+  block is rendered.**
+
 Optionally, the package for the specific chart can be specified in the `{% render ... %}` tag as a the last option. 
 The tag should in that case be written as: `{% render "div_id" "data" "options" "package name" %}`. This will cause 
-the package to be applied to the current `{% gcharts %} ... {% endgcharts %}` block only.
+the package to be applied to the current `{% gcharts %} ... {% endgcharts %}` block only, in addition to those specified
+in settings.py.
 
 
 * `corechart` contains these charts
