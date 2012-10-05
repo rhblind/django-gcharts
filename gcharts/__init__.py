@@ -116,7 +116,7 @@ class GChartsQuerySet(QuerySet):
             for alias in self.query.extra.iterkeys():
                 try:
                     descr = labels.pop(alias)
-                    if (not isinstance(descr, dict) and len(descr)) == 1:
+                    if not (isinstance(descr, dict) and len(descr) == 1):
                         raise Exception("Field description must be a dict and must contain exactly one element.")
                     field_jstype, label = descr.popitem()
                     if field_jstype not in valid_jstypes:
