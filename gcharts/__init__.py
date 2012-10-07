@@ -100,6 +100,8 @@ class GChartsQuerySet(QuerySet):
         
         http://docs.python.org/library/string.html#string-formatting
         """
+        if not isinstance(formatting, dict):
+            raise Exception("formatting must be a dict")
         for row in self.values(*fields):
             for field, frmt in formatting.iteritems():
                 val = row[field]
@@ -183,7 +185,6 @@ class GChartsQuerySet(QuerySet):
                            ", ".join(fields))
         return table_description
         
-        
     def values(self, *fields):
         return self._clone(klass=GChartsValuesQuerySet, setup=True, _fields=fields)
     
@@ -196,7 +197,6 @@ class GChartsQuerySet(QuerySet):
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
         return self._clone(klass=GChartsValuesListQuerySet, setup=True, flat=flat,
                 _fields=fields)
-
         
     #
     # Methods which serialize data to various outputs.
@@ -228,8 +228,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
@@ -255,8 +253,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
@@ -288,8 +284,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
@@ -318,8 +312,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
@@ -357,8 +349,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
@@ -393,8 +383,6 @@ class GChartsQuerySet(QuerySet):
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
         if formatting is not None:
-            if not isinstance(formatting, dict):
-                raise Exception("formatting must be a dict")
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
