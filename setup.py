@@ -24,6 +24,7 @@ setup(
         ]
     },
     classifiers = [
+        "Platform :: Any",
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
         "Framework :: Django",
