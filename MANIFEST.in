@@ -1,2 +1,2 @@
-recursive include gcharts/templates *.html
+recursive-include gcharts/templates *.html
 include LICENSE.md
