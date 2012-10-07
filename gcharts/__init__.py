@@ -39,24 +39,24 @@ class GChartsManager(models.Manager):
     def get_query_set(self):
         return GChartsQuerySet(self.model, using=self._db)
     
-    def to_javascript(self, name, order=None, labels=None, properties=None):
-        return self.get_query_set().to_javascript(name, order, labels, properties)
+    def to_javascript(self, name, order=None, labels=None, formatting=None, properties=None):
+        return self.get_query_set().to_javascript(name, order, labels, formatting, properties)
     
-    def to_html(self, order=None, labels=None, properties=None):
-        return self.get_query_set().to_html(order, labels, properties)
+    def to_html(self, order=None, labels=None, formatting=None, properties=None):
+        return self.get_query_set().to_html(order, labels, formatting, properties)
     
-    def to_csv(self, order=None, labels=None, properties=None, separator=","):
-        return self.get_query_set().to_csv(order, labels, properties, separator)
+    def to_csv(self, order=None, labels=None, formatting=None, properties=None, separator=","):
+        return self.get_query_set().to_csv(order, labels, formatting, properties, separator)
     
-    def to_tsv_excel(self, order=None, labels=None, properties=None):
-        return self.get_query_set().to_tsv_excel(order, labels, properties)
+    def to_tsv_excel(self, order=None, labels=None, formatting=None, properties=None):
+        return self.get_query_set().to_tsv_excel(order, labels, formatting, properties)
     
     def to_json(self, order=None, labels=None, formatting=None, properties=None):
         return self.get_query_set().to_json(order, labels, formatting, properties)
     
-    def to_json_response(self, order=None, labels=None, properties=None,
+    def to_json_response(self, order=None, labels=None, formatting=None, properties=None,
                      req_id=0, handler="google.visualization.Query.setResponse"):
-        return self.get_query_set().to_json_response(order, labels, properties,
+        return self.get_query_set().to_json_response(order, labels, formatting, properties,
                                                      req_id, handler)
     
 
@@ -94,7 +94,10 @@ class GChartsQuerySet(QuerySet):
     
     def formatting(self, fields, formatting):
         """
-        Format the value according to formatting rules
+        Apply custom formatting.
+        formatting must be a string.format() compatible
+        expression.
+        
         http://docs.python.org/library/string.html#string-formatting
         """
         for row in self.values(*fields):
@@ -103,7 +106,7 @@ class GChartsQuerySet(QuerySet):
                 frmt_val = frmt.format(val)
                 row.update({field: (val, frmt_val)})
             yield row
-    
+        
     def table_description(self, labels=None):
         """
         Return table description for QuerySet.
@@ -200,7 +203,7 @@ class GChartsQuerySet(QuerySet):
     # These methods are just a convenient wrapper to the
     # methods in the gviz_api calls.
     # 
-    def to_javascript(self, name, order=None, labels=None, properties=None):
+    def to_javascript(self, name, order=None, labels=None, formatting=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as javascript code string.
@@ -219,16 +222,21 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=self.values(*fields))
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToJSCode(name=name, columns_order=order)
     
-    def to_html(self, order=None, labels=None, properties=None):
+    def to_html(self, order=None, labels=None, formatting=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as a html table code string.
@@ -241,17 +249,21 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
-        
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=self.values(*fields))
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToHtml(columns_order=order)
     
-    def to_csv(self, order=None, labels=None, properties=None, separator=","):
+    def to_csv(self, order=None, labels=None, formatting=None, properties=None, separator=","):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as a csv string.
@@ -270,17 +282,21 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
-        
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=self.values(*fields))
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToCsv(columns_order=order, separator=separator)
     
-    def to_tsv_excel(self, order=None, labels=None, properties=None):
+    def to_tsv_excel(self, order=None, labels=None, formatting=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Returns a file in tab-separated-format readable by MS Excel.
@@ -296,13 +312,18 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=self.values(*fields))
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToTsvExcel(columns_order=order)
     
     def to_json(self, order=None, labels=None, formatting=None, properties=None):
@@ -330,6 +351,7 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
         table_descr = self.table_description(labels)
@@ -340,13 +362,10 @@ class GChartsQuerySet(QuerySet):
             data = self.formatting(fields, formatting)
         else:
             data = self.values(*fields)
-
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=data)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToJSon(columns_order=order)
     
-    def to_json_response(self, order=None, labels=None, properties=None,
+    def to_json_response(self, order=None, labels=None, formatting=None, properties=None,
                  req_id=0, handler="google.visualization.Query.setResponse"):
         """
         Does _not_ return a new QuerySet.
@@ -368,13 +387,18 @@ class GChartsQuerySet(QuerySet):
             labels: Dictionary mapping {'field': 'label'}
                     where field is the name of the field in model,
                     and label is the desired label on the chart.
+            formatting: string.format() compatible expression.
             properties: Dictionary with custom properties.
         """
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
-        data_table = gviz_api.DataTable(table_description=table_descr,
-                                        custom_properties=properties, 
-                                        data=self.values(*fields))
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+        data_table = gviz_api.DataTable(table_descr, data, properties)
         return data_table.ToJSonResponse(columns_order=order, 
                              req_id=req_id, response_handler=handler)
     
