@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
     name = "django-gcharts",
-    version = "1.0-alpha-1",
+    version = "v1.0-alpha-1",
     description = "Provides a QuerySet, Manager and other tools for easy integration with the Google Visualization API",
     long_description = open("README.md").read(),
     keywords = "django google charts graph plot",
