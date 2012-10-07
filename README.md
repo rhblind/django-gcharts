@@ -14,7 +14,7 @@ This library is heavy influenced by [mvasilkov's django-google-charts](https://g
 and some of the code (template tags and javascript code) are directly copied from him. I've done some minor adjustments to
 make it work for my approach.
 
-### About django-gcharts ###
+## About django-gcharts ##
 As I find mvasilkov's approach very clever, I think it would be nice if the model could deliver it's data in a format
 the Google Visualization API can read.
 
