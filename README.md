@@ -143,8 +143,11 @@ Spam Inc. needs to chart how much spam they sell.
                         #       {'extra_name': {'javascript data type': 'label for field'}}
                         #  - order is an iterable which sets the column order in which the data should be
                         #    rendered
+                        #  - formatting is a dict {'field_name': 'expression'}, where expression is a 
+                        #    valid string.format() expression.
                         spam_json = qset.to_json(labels={"id__count": "Spam sold", "date": {"date": "Date"}},
-                                                 order=("date", "id__count"))
+                                                 order=("date", "id__count"), 
+                                                 formatting={"id__count": "{0:d} units of spam"})
                         
                         return render_to_response("sales_overviews/spamreport.html, {"spam_data": spam_json},
                                                   context_instance=RequestContext(request))
