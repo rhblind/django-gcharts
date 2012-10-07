@@ -51,8 +51,8 @@ class GChartsManager(models.Manager):
     def to_tsv_excel(self, order=None, labels=None, properties=None):
         return self.get_query_set().to_tsv_excel(order, labels, properties)
     
-    def to_json(self, order=None, labels=None, properties=None):
-        return self.get_query_set().to_json(order, labels, properties)
+    def to_json(self, order=None, labels=None, formatting=None, properties=None):
+        return self.get_query_set().to_json(order, labels, formatting, properties)
     
     def to_json_response(self, order=None, labels=None, properties=None,
                      req_id=0, handler="google.visualization.Query.setResponse"):
@@ -91,6 +91,18 @@ class GChartsQuerySet(QuerySet):
                 return v
         # Should never hit this
         raise KeyError("%s is not a valid field" % field)
+    
+    def formatting(self, fields, formatting):
+        """
+        Format the value according to formatting rules
+        http://docs.python.org/library/string.html#string-formatting
+        """
+        for row in self.values(*fields):
+            for field, frmt in formatting.iteritems():
+                val = row[field]
+                frmt_val = frmt.format(val)
+                row.update({field: (val, frmt_val)})
+            yield row
     
     def table_description(self, labels=None):
         """
@@ -293,7 +305,7 @@ class GChartsQuerySet(QuerySet):
                                         data=self.values(*fields))
         return data_table.ToTsvExcel(columns_order=order)
     
-    def to_json(self, order=None, labels=None, properties=None):
+    def to_json(self, order=None, labels=None, formatting=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as json serialized string.
@@ -322,9 +334,16 @@ class GChartsQuerySet(QuerySet):
         """
         table_descr = self.table_description(labels)
         fields = table_descr.keys()
+        if formatting is not None:
+            if not isinstance(formatting, dict):
+                raise Exception("formatting must be a dict")
+            data = self.formatting(fields, formatting)
+        else:
+            data = self.values(*fields)
+
         data_table = gviz_api.DataTable(table_description=table_descr,
                                         custom_properties=properties, 
-                                        data=self.values(*fields))
+                                        data=data)
         return data_table.ToJSon(columns_order=order)
     
     def to_json_response(self, order=None, labels=None, properties=None,
