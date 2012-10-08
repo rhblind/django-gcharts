@@ -4,8 +4,8 @@ Yet another Google Charts library for Django
 - See http://code.google.com/p/google-visualization-python/ for details.
 
 ## Note ##
-This library is yet in pre-alpha development mode.
-It's still not ready for use, do _NOT_ use this for anything except experimenting.
+This library is still in alpha development mode.
+There is probably lots of bugs, and stuff to fix. Please do not rely on this library for _important_ work. =)
 
 Please feel free submit patches/pull requests ;)
 
@@ -24,6 +24,10 @@ The goal is to "fully" support the QuerySet (with aggregates, joins, extra, anno
 by using familiar QuerySet syntax.
 
 ## Configuration ##
+
+### Installation ###
+        
+        $ pip install django-gcharts
 
 ### settings.py ###
         GOOGLECHARTS_API = "1.1"
