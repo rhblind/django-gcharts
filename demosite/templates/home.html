@@ -20,97 +20,97 @@
                 <h1><a href="https://github.com/rhblind/django-gcharts">django-gcharts</a></h1>
             </header>
             <div class="container_12">
-            	{% load gcharts %}
-    
-			    {% gcharts %}
-			        <!-- Default options -->
-			        options = {
-			            width: 460,
-			            height: 300,
-			        };
-			        
-			        <!-- Options for GeoChart -->
-			        geo_opt = _clone(options);
-			        geo_opt.width = "100%";
-			        geo_opt.height = "100%";
-			        
-			        {% options geo_opt %}
-                        kind: "GeoChart",
-                        options: geo_opt,
+				{% load gcharts %}
+				
+				{% gcharts %}
+				    <!-- Default options -->
+				    options = {
+				        width: 460,
+				        height: 300,
+				    };
+				    
+				    <!-- Options for GeoChart -->
+				    geo_opt = _clone(options);
+				    geo_opt.width = "100%";
+				    geo_opt.height = "100%";
+				    
+                    {% options geo_opt %}
+						kind: "GeoChart",
+						options: geo_opt,
                     {% endoptions %}
-                    
-                    <!-- Options for AreaChart -->
-                    area_opt = _clone(options);
-                    area_opt.title = "Charting some random numbers"
-                    
-                    {% options area_opt %}
-                        kind: "AreaChart",
-                        options: area_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for BarChart -->
-                    bar_opt = _clone(area_opt)
-                    
-                    {% options bar_opt %}
-                        kind: "BarChart",
-                        options: bar_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for LineChart -->
-                    line_opt = _clone(area_opt)
-                    
-                    {% options line_opt %}
-                        kind: "LineChart",
-                        options: line_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for ColumnChart -->
-                    column_opt = _clone(area_opt)
-                    
-                    {% options column_opt %}
-                        kind: "ColumnChart",
-                        options: column_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for ComboChart -->
-                    combo_opt = _clone(area_opt)
-                    combo_opt.seriesType = "bars";
-                    combo_opt.series = {1: {type: "line"}};
-                    
-                    {% options combo_opt %}
-                        kind: "ComboChart",
-                        options: combo_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for PieChart -->
-                    pie_opt = _clone(options);
-                    
-                    {% options pie_opt %}
-                        kind: "PieChart",
-                        options: pie_opt,
-                    {% endoptions %}
-                    
-                    <!-- Options for Table -->
-                    table_opt = _clone(options);
-                    table_opt.page = "enable";
-                    table_opt.pageSize = "15";
-                    
-                    {% options table_opt %}
-                        kind: "Table",
-                        options: table_opt,
-                    {% endoptions %}
-
-                    <!-- Render all charts -->			
-	                {% render "geo_chart" "geo_data" "geo_opt" %}
-	                {% render "area_chart" "area_data" "area_opt" %}
-	                {% render "pie_chart" "pie_data" "pie_opt" %}
-	                {% render "bar_chart" "bar_data" "bar_opt" %}
-	                {% render "line_chart" "line_data" "line_opt" %}
-	                {% render "column_chart" "column_data" "column_opt" %}
-	                {% render "combo_chart" "combo_data" "combo_opt" %}
-	                {% render "table_chart" "table_data" "table_opt" %}
-
-			    {% endgcharts %}
+				    
+				    <!-- Options for AreaChart -->
+				    area_opt = _clone(options);
+				    area_opt.title = "Charting some random numbers"
+				    
+				    {% options area_opt %}
+				        kind: "AreaChart",
+				        options: area_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for BarChart -->
+				    bar_opt = _clone(area_opt)
+				    
+				    {% options bar_opt %}
+				        kind: "BarChart",
+				        options: bar_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for LineChart -->
+				    line_opt = _clone(area_opt)
+				    
+				    {% options line_opt %}
+				        kind: "LineChart",
+				        options: line_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for ColumnChart -->
+				    column_opt = _clone(area_opt)
+				    
+				    {% options column_opt %}
+				        kind: "ColumnChart",
+				        options: column_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for ComboChart -->
+				    combo_opt = _clone(area_opt)
+				    combo_opt.seriesType = "bars";
+				    combo_opt.series = {1: {type: "line"}};
+				    
+				    {% options combo_opt %}
+				        kind: "ComboChart",
+				        options: combo_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for PieChart -->
+				    pie_opt = _clone(options);
+				    
+				    {% options pie_opt %}
+				        kind: "PieChart",
+				        options: pie_opt,
+				    {% endoptions %}
+				    
+				    <!-- Options for Table -->
+				    table_opt = _clone(options);
+				    table_opt.page = "enable";
+				    table_opt.pageSize = "15";
+				    
+				    {% options table_opt %}
+				        kind: "Table",
+				        options: table_opt,
+				    {% endoptions %}
+				
+				    <!-- Render all charts -->			
+				    {% render "geo_chart" "geo_data" "geo_opt" %}
+				    {% render "area_chart" "area_data" "area_opt" %}
+				    {% render "pie_chart" "pie_data" "pie_opt" %}
+				    {% render "bar_chart" "bar_data" "bar_opt" %}
+				    {% render "line_chart" "line_data" "line_opt" %}
+				    {% render "column_chart" "column_data" "column_opt" %}
+				    {% render "combo_chart" "combo_data" "combo_opt" %}
+				    {% render "table_chart" "table_data" "table_opt" %}
+				
+				{% endgcharts %}
 			    
 			    
             	<h1>Demo site</h1>
