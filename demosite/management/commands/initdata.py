@@ -32,14 +32,14 @@ class Command(NoArgsCommand):
         # This data is really random and by no means correct!
         p = os.path.join(settings.PROJECT_PATH, "demosite", "countries.txt")
         with open(p, "r") as fname:
-            countries = fname.readlines()
+            countries = map(lambda s: s.rstrip("\n"), fname.readlines())
 
         for _, c in enumerate(countries):
             code, name = c.split(":")
             data = {
                 "country_name": name,
                 "country_code": code,
-                "population": random.randint(1, 1000),
+                "population": random.randint(1, 300),
                 "fertility_rate": random.uniform(0.7, 7.2)
             }
             GeoData.objects.create(**data)
@@ -53,13 +53,14 @@ class Command(NoArgsCommand):
         
         p = os.path.join(settings.PROJECT_PATH, "demosite", "names.txt")
         with open(p, "r") as fname:
-            names = fname.readlines()
+            names = map(lambda s: s.rstrip("\n"), fname.readlines())
             
         for d in daterange(otherday, today):
             for n in names:
                 data = {
                     "name": n,
-                    "number": random.randint(10, 100),
+                    "number1": random.randint(10, 100),
+                    "number2": random.randint(10, 100),
                     "date": d
                 }
                 OtherData.objects.create(**data)

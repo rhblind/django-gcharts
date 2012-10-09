@@ -9,6 +9,7 @@
 *.pyo
 *.so
 *.log
+*.db
 .svn
 _svn
 .DS_Store

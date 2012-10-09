@@ -29,10 +29,9 @@ h2 {
 }
 
 p {
-  border: 1px solid #666;
   overflow: hidden;
   padding: 10px 0;
-  text-align: center;
+  text-align: left;
 }
 
 .container_12,
@@ -41,4 +40,29 @@ p {
   background-color: #fff;
   background-repeat: repeat-y;
   margin-bottom: 20px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+ul li {
+    padding-left: 10px;
+}
+
+.note {
+    position: relative;  
+    padding: 10px 15px 50px 15px;
+    margin: 0 auto;  
+    background-color: #fff;  
+    -webkit-box-shadow: 0 0 4px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);  
+    -moz-box-shadow: 0 0 4px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);  
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);
+}
+
+.note a {
+    color: #000;
+    text-decoration: underline; 
 }

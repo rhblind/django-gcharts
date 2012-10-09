@@ -162,5 +162,5 @@ LOGGING = {
 
 # django-gcharts settings
 GOOGLECHARTS_API = '1.1'
-GOOGLECHARTS_PACKAGES = ['corechart']
+GOOGLECHARTS_PACKAGES = ["corechart", "gauge", "geochart", "table", "treemap"]
 

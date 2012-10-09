@@ -13,7 +13,7 @@ class GeoData(models.Model):
     country_name = models.CharField(max_length=100)
     country_code = models.CharField(max_length=2)
     population = models.PositiveIntegerField()
-    fertility_rate = models.DecimalField(max_digits=4, decimal_places=3)
+    fertility_rate = models.FloatField()
     
 
 class OtherData(models.Model):
@@ -25,6 +25,7 @@ class OtherData(models.Model):
     objects = models.Manager()
     
     name = models.CharField(max_length=20)
-    number = models.IntegerField()
+    number1 = models.IntegerField()
+    number2 = models.IntegerField()
     date = models.DateField()
     
