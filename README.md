@@ -1,11 +1,10 @@
-Yet another Google Charts library for Django
+##Yet another Google Charts library for Django##
 
 - Requires installation of the gviz_api library which is freely available from Google.
 - See http://code.google.com/p/google-visualization-python/ for details.
 
 ## Note ##
-This library is still in alpha development mode.
-There is probably lots of bugs, and stuff to fix. Please do not rely on this library for _important_ work. =)
+**Development status updated to beta. The code is still short on unit tests, so bad stuff can happen!**
 
 Please feel free submit patches/pull requests ;)
 
@@ -22,6 +21,24 @@ This library is an attempt of doing that, by using a custom QuerySet and Manager
 and some wrapper methods to bind the QuerySet data up against the gviz_api library.
 The goal is to "fully" support the QuerySet (with aggregates, joins, extra, annotates, etc) so that we can gather data
 by using familiar QuerySet syntax.
+
+### Demo site ###
+The git version now includes a demo site which can be run at your local machine once cloned. The demo site previews a few
+of the charts included in the Google Visualization API, and should contain enough working examples for you to figure out
+how this stuff works.
+
+**Important: The [gviz_api](http://code.google.com/p/google-visualization-python/) library is _not_ included, 
+and must still be installed separately.**
+
+To get started with the demo site, follow these steps.
+
+        $ git clone https://github.com/rhblind/django-gcharts.git
+        $ cd django-gcharts
+        $ python manage.py syncdb
+        $ python manage.py initdata
+        $ python manage.py runserver
+
+Then point your browser to http://localhost:8000 and you should see a few different charts displayed.
 
 ## Configuration ##
 

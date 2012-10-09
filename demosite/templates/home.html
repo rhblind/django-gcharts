@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+
+        <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+        Remove this if you use the .htaccess -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+        <title>django-gcharts demo site</title>
+        <meta name="description" content="django-gcharts demo site" />
+        
+        <link rel="stylesheet" type="text/css" href="/static/960.css" media="all">
+        <link rel="stylesheet" type="text/css" href="/static/demosite.css" media="all">
+    </head>
+
+    <body>
+        <div class="center">
+            <header>
+                <h1><a href="https://github.com/rhblind/django-gcharts">django-gcharts</a></h1>
+            </header>
+            <div class="container_12">
+            	{% load gcharts %}
+    
+			    {% gcharts %}
+			        <!-- Default options -->
+			        options = {
+			            width: 460,
+			            height: 300,
+			        };
+			        
+			        <!-- Options for GeoChart -->
+			        geo_opt = _clone(options);
+			        geo_opt.width = "100%";
+			        geo_opt.height = "100%";
+			        
+			        {% options geo_opt %}
+                        kind: "GeoChart",
+                        options: geo_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for AreaChart -->
+                    area_opt = _clone(options);
+                    area_opt.title = "Charting some random numbers"
+                    
+                    {% options area_opt %}
+                        kind: "AreaChart",
+                        options: area_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for BarChart -->
+                    bar_opt = _clone(area_opt)
+                    
+                    {% options bar_opt %}
+                        kind: "BarChart",
+                        options: bar_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for LineChart -->
+                    line_opt = _clone(area_opt)
+                    
+                    {% options line_opt %}
+                        kind: "LineChart",
+                        options: line_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for ColumnChart -->
+                    column_opt = _clone(area_opt)
+                    
+                    {% options column_opt %}
+                        kind: "ColumnChart",
+                        options: column_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for ComboChart -->
+                    combo_opt = _clone(area_opt)
+                    combo_opt.seriesType = "bars";
+                    combo_opt.series = {1: {type: "line"}};
+                    
+                    {% options combo_opt %}
+                        kind: "ComboChart",
+                        options: combo_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for PieChart -->
+                    pie_opt = _clone(options);
+                    
+                    {% options pie_opt %}
+                        kind: "PieChart",
+                        options: pie_opt,
+                    {% endoptions %}
+                    
+                    <!-- Options for Table -->
+                    table_opt = _clone(options);
+                    table_opt.page = "enable";
+                    table_opt.pageSize = "15";
+                    
+                    {% options table_opt %}
+                        kind: "Table",
+                        options: table_opt,
+                    {% endoptions %}
+
+                    <!-- Render all charts -->			
+	                {% render "geo_chart" "geo_data" "geo_opt" %}
+	                {% render "area_chart" "area_data" "area_opt" %}
+	                {% render "pie_chart" "pie_data" "pie_opt" %}
+	                {% render "bar_chart" "bar_data" "bar_opt" %}
+	                {% render "line_chart" "line_data" "line_opt" %}
+	                {% render "column_chart" "column_data" "column_opt" %}
+	                {% render "combo_chart" "combo_data" "combo_opt" %}
+	                {% render "table_chart" "table_data" "table_opt" %}
+
+			    {% endgcharts %}
+			    
+			    
+            	<h1>Demo site</h1>
+                
+                <div class="grid_12">
+                	<h2>GeoChart - Top 100 world pretend population</h2>
+                	<div id="geo_chart">
+	                    <!-- Container for geo_chart -->
+                	</div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>AreaChart</h2>
+                    <div id="area_chart">
+                    	<!-- Container for area_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>PieChart</h2>
+                    <div id="pie_chart">
+                        <!-- Container for  pie_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>BarChart</h2>
+                    <div id="bar_chart">
+                        <!-- Container for bar_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>LineChart</h2>
+                    <div id="line_chart">
+                        <!-- Container for line_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>ColumnChart</h2>
+                    <div id="column_chart">
+                        <!-- Container for column_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>ComboChart</h2>
+                    <div id="combo_chart">
+                        <!-- Container for combo_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                    <h2>Table - Rat cake statistics</h2>
+                    <div id="table_chart">
+                    	<!-- Container for table_chart -->
+                    </div>
+                </div>
+                
+                <div class="grid_6">
+                	<h2>And so on..</h2>
+                    <div class="note">
+                    	<h4>More resources</h4>
+                    	<ul>
+                    		<li><a href="https://developers.google.com/chart/interactive/docs/index">
+                    			Google Visualization API documentation</a></li>
+                    		<li><a href="https://github.com/rhblind/django-gcharts">
+                    			django-gcharts home at github</a></li>
+                    	</ul>
+                        <p>
+                        	By now you probably has a pretty good idea about what this is about.
+                        	<br />Thanks for downloading django-gcharts =)
+                        </p>
+                    </div>                	
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>
