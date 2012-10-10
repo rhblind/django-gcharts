@@ -28,13 +28,19 @@
     })();
     
     function googlecharts_main() {
-        if (typeof googlecharts == "undefined") return;
-        for (var i = 0; i < googlecharts.length; ++i) {
-        	var c = googlecharts[i];
-        	var datatable = new google.visualization.DataTable(c.data);
-        	c.container = document.getElementById(c.container);
-        	var chart = new google.visualization[c.kind](c.container);
-            chart.draw(datatable, c.options);
+        try {
+            if (typeof googlecharts == "undefined") return;
+            for (var i = 0; i < googlecharts.length; ++i) {
+            	var c = googlecharts[i];
+            	var datatable = new google.visualization.DataTable(c.data);
+            	c.container = document.getElementById(c.container);
+            	var chart = new google.visualization[c.kind](c.container);
+                chart.draw(datatable, c.options);
+            }
+        }
+        catch(err) {
+            err_msg = "Oops, something went wrong!\n" + err
+            alert(err_msg);       
         }
     }
     

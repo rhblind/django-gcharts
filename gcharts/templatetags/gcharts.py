@@ -41,8 +41,10 @@ class GChartsNode(template.Node):
         js = self._nodelist.render(context)
         pkg = context.get("pkg", None)
         packages = [p for p in _packages]
-        if (pkg is not None and pkg not in packages):
-            packages.append(pkg)
+        if pkg is not None:
+            for p in pkg.split(","):
+                if p not in packages:
+                    packages.append(p)
         return self.render_template("gcharts/gcharts.html", googlecharts_js=js,
                                     api=_api, packages=packages)
 
@@ -99,7 +101,10 @@ class RenderNode(template.Node):
         """
         if self.pkg is not "default":
             if self.pkg in GOOGLECHARTS_PACKAGES:
-                context["pkg"] = self.pkg
+                if context.get("pkg", None) is not None:
+                    context["pkg"] = ", ".join((context["pkg"], self.pkg))
+                else:
+                    context["pkg"] = self.pkg
             else:
                 raise TemplateSyntaxError("%s is not a valid package. Valid packages are %s" \
                                           % (self.pkg, ", ".join(GOOGLECHARTS_PACKAGES)))
