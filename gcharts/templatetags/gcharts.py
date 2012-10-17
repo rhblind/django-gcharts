@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This code is copied from mvasilkov's django-google-charts on github
-# (https://github.com/mvasilkov/django-google-charts) and licensed under 
+# (https://github.com/mvasilkov/django-google-charts) and licensed under
 # the MIT License
 #
 
@@ -23,13 +23,14 @@ for pkg in _packages:
         raise ImproperlyConfigured("%s is not a valid package. Valid packages are %s" \
                                    % (pkg, ", ".join(GOOGLECHARTS_PACKAGES)))
 
+
 def _remove_quotes(s):
     if s[0] in ('"', "'") and s[-1] == s[0]:
         return s[1:-1]
     return s
 
-# {% gcharts %} ... {% endgcharts %}
 
+# {% gcharts %} ... {% endgcharts %}
 class GChartsNode(template.Node):
     def __init__(self, nodelist):
         self._nodelist = nodelist
@@ -48,6 +49,7 @@ class GChartsNode(template.Node):
         return self.render_template("gcharts/gcharts.html", googlecharts_js=js,
                                     api=_api, packages=packages)
 
+
 @register.tag
 def gcharts(parser, token):
     nodelist = parser.parse(["endgcharts"])
@@ -56,7 +58,6 @@ def gcharts(parser, token):
 
 
 # {% options "name" %}...{% endoptions %}
-
 class OptionsNode(template.Node):
     def __init__(self, nodelist, name):
         self._nodelist = nodelist
@@ -69,6 +70,7 @@ class OptionsNode(template.Node):
         };
         '''
         return self.render.__doc__ % {'name': self._name, 'data': self._nodelist.render(context)}
+
 
 @register.tag
 def options(parser, token):
@@ -83,7 +85,6 @@ def options(parser, token):
 
 
 # {% render "container_id" "data" "options" %}
-
 class RenderNode(template.Node):
     def __init__(self, container, data, options, pkg):
         self.container = container
@@ -112,6 +113,7 @@ class RenderNode(template.Node):
         return self.render.__doc__ % {"options": self.options, "container": self.container,
                                       "src": self.data.var, "data": self.data.resolve(context)}
 
+
 @register.tag
 def render(parser, token):
     args = token.split_contents()
@@ -121,5 +123,3 @@ def render(parser, token):
         args.append("default")
     _, container, data, options, pkg = [_remove_quotes(s) for s in args]
     return RenderNode(container=container, data=data, options=options, pkg=pkg)
-
-

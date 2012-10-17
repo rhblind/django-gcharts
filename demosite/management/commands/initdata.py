@@ -10,6 +10,7 @@ from django.core.management.base import NoArgsCommand
 from django.db.transaction import commit_on_success
 from demosite.models import GeoData, OtherData
 
+
 def daterange(start_date, end_date, step=1, include_weekends=True):
     """
     Iterate over a range of dates, incrementing at given step, and
@@ -20,6 +21,7 @@ def daterange(start_date, end_date, step=1, include_weekends=True):
         if not include_weekends and date.isoweekday() in (6, 7):
             continue
         yield date
+
 
 class Command(NoArgsCommand):
     """
@@ -67,7 +69,3 @@ class Command(NoArgsCommand):
                 self.stdout.write(".")
                 self.stdout.flush()
         self.stdout.write("\n")
-        
-        
-            
-        

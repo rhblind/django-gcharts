@@ -6,6 +6,7 @@ from demosite.models import GeoData, OtherData
 from django.template.context import RequestContext
 from django.db.models.aggregates import Sum
 
+
 def home(request):
     """
     Gather some data for the demo site

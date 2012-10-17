@@ -9,6 +9,7 @@ try:
 except ImportError:
     raise ImportError("You must install the gviz_api library.")
 
+
 class _GChartsConfig(object):
     
     logger = None
@@ -17,7 +18,7 @@ class _GChartsConfig(object):
     def get_logger(cls):
         """
         Instantiate and return a default logger.
-        The NullHandler logger does nothing, and is supposed 
+        The NullHandler logger does nothing, and is supposed
         to be overridden in settings.py by creating a logger
         named 'gcharts'.
         """
@@ -28,11 +29,12 @@ class _GChartsConfig(object):
             
             cls.logger = logging.getLogger("gcharts")
             cls.logger.addHandler(NullHandler())
-            
+
         return cls.logger
 
 # Global logger
 logger = _GChartsConfig.get_logger()
+
 
 class GChartsManager(models.Manager):
     
@@ -148,12 +150,12 @@ class GChartsQuerySet(QuerySet):
         # resolve other fields of interest
         fields = set(getattr(self, "_fields", [f.name for f in self.model._meta.fields]))
         
-        # remove fields that has already been 
+        # remove fields that has already been
         # put in the table_description
         def clean_parsed_fields():
             for f in table_description.iterkeys():
                 if f in fields:
-                    fields.remove(f) 
+                    fields.remove(f)
         clean_parsed_fields()
         
         for f_name in fields:
@@ -202,14 +204,14 @@ class GChartsQuerySet(QuerySet):
     # Methods which serialize data to various outputs.
     # These methods are just a convenient wrapper to the
     # methods in the gviz_api calls.
-    # 
+    #
     def to_javascript(self, name, order=None, labels=None, formatting=None, properties=None):
         """
         Does _not_ return a new QuerySet.
         Return QuerySet data as javascript code string.
         
         This method writes a string of JS code that can be run to
-        generate a DataTable with the specified data. Typically used 
+        generate a DataTable with the specified data. Typically used
         for debugging only.
         
         kwargs:
@@ -264,8 +266,8 @@ class GChartsQuerySet(QuerySet):
         Does _not_ return a new QuerySet.
         Return QuerySet data as a csv string.
         
-        Output is encoded in UTF-8 because the Python "csv" 
-        module can't handle Unicode properly according to 
+        Output is encoded in UTF-8 because the Python "csv"
+        module can't handle Unicode properly according to
         its documentation.
         
         kwargs:
@@ -295,7 +297,7 @@ class GChartsQuerySet(QuerySet):
         Does _not_ return a new QuerySet.
         Returns a file in tab-separated-format readable by MS Excel.
         
-        Returns a file in UTF-16 little endian encoding, with tabs 
+        Returns a file in UTF-16 little endian encoding, with tabs
         separating the values.
         
         kwargs:
@@ -387,7 +389,7 @@ class GChartsQuerySet(QuerySet):
         else:
             data = self.values(*fields)
         data_table = gviz_api.DataTable(table_descr, data, properties)
-        return data_table.ToJSonResponse(columns_order=order, 
+        return data_table.ToJSonResponse(columns_order=order,
                              req_id=req_id, response_handler=handler)
     
     #
@@ -420,4 +422,3 @@ class GChartsValuesQuerySet(GChartsQuerySet, ValuesQuerySet):
 class GChartsValuesListQuerySet(GChartsValuesQuerySet, ValuesListQuerySet):
     def __init__(self, *args, **kwargs):
         super(GChartsValuesListQuerySet, self).__init__(*args, **kwargs)
-        
