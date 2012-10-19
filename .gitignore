@@ -16,3 +16,6 @@ _svn
 .project
 .pydevproject
 .settings
+_build/
+_templates/
+_static/
