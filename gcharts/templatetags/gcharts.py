@@ -8,7 +8,7 @@
 from django.conf import settings
 from django import template
 from django.template.loader import render_to_string
-from django.template.base import TemplateSyntaxError
+from django.template.base import TemplateSyntaxError, VariableDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
 
 register = template.Library()
@@ -87,7 +87,7 @@ def options(parser, token):
 # {% render "container_id" "data" "options" %}
 class RenderNode(template.Node):
     def __init__(self, container, data, options, pkg):
-        self.container = container
+        self.container = template.Variable(container)
         self.data = template.Variable(data)
         self.options = options
         self.pkg = pkg
@@ -109,8 +109,13 @@ class RenderNode(template.Node):
             else:
                 raise TemplateSyntaxError("%s is not a valid package. Valid packages are %s" \
                                           % (self.pkg, ", ".join(GOOGLECHARTS_PACKAGES)))
-
-        return self.render.__doc__ % {"options": self.options, "container": self.container,
+        try:
+            # Try to resolve the container from context variables.
+            # Useful if creating charts in a loop, etc.
+            container = self.container.resolve(context)
+        except VariableDoesNotExist:
+            container = self.container
+        return self.render.__doc__ % {"options": self.options, "container": container,
                                       "src": self.data.var, "data": self.data.resolve(context)}
 
 
