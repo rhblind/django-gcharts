@@ -20,8 +20,7 @@ setup(
     ],
     package_data = {
         "gcharts": [
-            "templates/gcharts/*.html",
-            "templates/gcharts/tests/*.json"
+            "templates/gcharts/*.html"
         ]
     },
     classifiers = [
