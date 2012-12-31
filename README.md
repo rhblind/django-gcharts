@@ -103,10 +103,12 @@ Register the GChartsManager to the model you'd like to draw charts from
         
         class MyModel(models.Model):
                 
+                # when using multiple managers, we need to specify the default 'objects' manager as well
+                # NOTE: Make sure to specify the default manager first, else wierd stuff can happen!
+                # See #Issue3
+                objects = models.Manager()
                 # register the GChartsManager as a manager for this model
                 gcharts = GChartsManager()
-                # when using multiple managers, we need to specify the default 'objects' manager as well
-                objects = models.Manager()
                 
                 my_field = models.CharField(....)
                 my_other_field = models.IntegerField()
@@ -125,8 +127,8 @@ Spam Inc. needs to chart how much spam they sell.
         
         class Spam(models.Model):
                 
-                gcharts = GChartsManager()
                 objects = models.Manager()
+                gcharts = GChartsManager()
                 
                 name = models.Charfield(max_length=10)
                 ...
