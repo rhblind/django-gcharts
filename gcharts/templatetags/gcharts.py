@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# This code is copied from mvasilkov's django-google-charts on github
+# Parts of this code is copied from mvasilkov's django-google-charts on github
 # (https://github.com/mvasilkov/django-google-charts) and licensed under
 # the MIT License
 #
@@ -21,7 +21,7 @@ _packages = getattr(settings, "GOOGLECHARTS_PACKAGES", ["corechart"])
 
 for pkg in _packages:
     if pkg not in GOOGLECHARTS_PACKAGES:
-        raise ImproperlyConfigured("%s is not a valid package. Valid packages are %s" \
+        raise ImproperlyConfigured("%s is not a valid package. Valid packages are %s"
                                    % (pkg, ", ".join(GOOGLECHARTS_PACKAGES)))
 
 
@@ -65,12 +65,12 @@ class OptionsNode(template.Node):
         self._name = name
 
     def render(self, context):
-        '''
+        """
         var googlecharts_options_%(name)s = {
             %(data)s
         };
-        '''
-        return self.render.__doc__ % {'name': self._name, 'data': self._nodelist.render(context)}
+        """
+        return self.render.__doc__ % {"name": self._name, "data": self._nodelist.render(context)}
 
 
 @register.tag
@@ -79,8 +79,8 @@ def options(parser, token):
         _, name = token.split_contents()
         name = _remove_quotes(name)
     except ValueError:
-        name = 'default'
-    nodelist = parser.parse(['endoptions'])
+        name = "default"
+    nodelist = parser.parse(["endoptions"])
     parser.delete_first_token()
     return OptionsNode(nodelist, name=name)
 
@@ -124,7 +124,7 @@ class RenderNode(template.Node):
 def render(parser, token):
     args = token.split_contents()
     if len(args) < 4:
-        raise template.TemplateSyntaxError('%r tag requires at least three arguments' % args[0])
+        raise template.TemplateSyntaxError("%r tag requires at least three arguments" % args[0])
     while len(args) < 5:
         args.append("default")
     _, container, data, options, pkg = [_remove_quotes(s) for s in args]
