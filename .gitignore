@@ -16,4 +16,5 @@ _svn
 .project
 .pydevproject
 .settings
+.idea
 docs/_build
