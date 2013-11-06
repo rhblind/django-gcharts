@@ -2,12 +2,11 @@
 import logging
 from django.db import models
 from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
-from django.db.models.fields import FieldDoesNotExist
 
 try:
     import gviz_api
 except ImportError:
-    raise ImportError("You must install the gviz_api library.")
+    from gcharts.contrib import gviz_api
 
 
 class _GChartsConfig(object):

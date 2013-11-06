@@ -16,7 +16,8 @@ setup(
     packages = [
         "gcharts",
         "gcharts.tests",
-        "gcharts.templatetags"
+        "gcharts.contrib"
+        "gcharts.templatetags",
     ],
     package_data = {
         "gcharts": [
