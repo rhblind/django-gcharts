@@ -1,7 +1,10 @@
 ##Yet another Google Charts library for Django##
 
-- Requires installation of the gviz_api library which is freely available from Google.
+- ~~Requires installation of the gviz_api library which is freely available from Google.~~
 - See http://code.google.com/p/google-visualization-python/ for details.
+
+**UPDATE: The gviz_api library is now included.**
+
 
 ## Note ##
 **Development status updated to beta. The code is still short on unit tests, so bad stuff can happen!**
@@ -27,9 +30,6 @@ The git version now includes a demo site which can be run at your local machine 
 of the charts included in the Google Visualization API, and should contain enough working examples for you to figure out
 how this stuff works.
 
-**Important: The [gviz_api](http://code.google.com/p/google-visualization-python/) library is _not_ included, 
-and must still be installed separately.**
-
 To get started with the demo site, follow these steps.
 
         $ git clone https://github.com/rhblind/django-gcharts.git
@@ -44,17 +44,17 @@ Then point your browser to http://localhost:8000 and you should see a few differ
 
 ### Installation ###
         
-        $ pip install django-gcharts
+    $ pip install django-gcharts
 
 ### settings.py ###
-        GOOGLECHARTS_API = "1.1"
-        GOOGLECHARTS_PACKAGES = ["corechart"]
-        
-        INSTALLED_APPS = (
-                ...
-                'gcharts',
-                ...
-        )
+    GOOGLECHARTS_API = "1.1"
+    GOOGLECHARTS_PACKAGES = ["corechart"]
+    
+    INSTALLED_APPS = (
+        ...
+        'gcharts',
+        ...
+    )
 
  * `GOOGLECHARTS_API` - Optional. Defaults to 1.1
  * `GOOGLECHARTS_PACKAGES` - Optional. List of packages that should be loaded. Defaults to only `corechart`.
@@ -98,22 +98,22 @@ in settings.py.
 
 Register the GChartsManager to the model you'd like to draw charts from
 
-        from django.db import models
-        from gcharts import GChartsManager
+    from django.db import models
+    from gcharts import GChartsManager
+    
+    class MyModel(models.Model):
+            
+        # when using multiple managers, we need to specify the default 'objects' manager as well
+        # NOTE: Make sure to specify the default manager first, else wierd stuff can happen!
+        # See #Issue3
+        objects = models.Manager()
+        # register the GChartsManager as a manager for this model
+        gcharts = GChartsManager()
         
-        class MyModel(models.Model):
-                
-                # when using multiple managers, we need to specify the default 'objects' manager as well
-                # NOTE: Make sure to specify the default manager first, else wierd stuff can happen!
-                # See #Issue3
-                objects = models.Manager()
-                # register the GChartsManager as a manager for this model
-                gcharts = GChartsManager()
-                
-                my_field = models.CharField(....)
-                my_other_field = models.IntegerField()
-                
-                ...
+        my_field = models.CharField(....)
+        my_other_field = models.IntegerField()
+        
+        ...
                 
                 
 ## Examples ##
@@ -122,90 +122,90 @@ Spam Inc. needs to chart how much spam they sell.
 
 **models.py**
         
-        from django.db import models
-        from gcharts import GChartsManager
+    from django.db import models
+    from gcharts import GChartsManager
+    
+    class Spam(models.Model):
+            
+        objects = models.Manager()
+        gcharts = GChartsManager()
         
-        class Spam(models.Model):
-                
-                objects = models.Manager()
-                gcharts = GChartsManager()
-                
-                name = models.Charfield(max_length=10)
-                ...
-                ...
-                cdt = models.DateTimeField(auto_add_now=True, verbose_name="Creation datetime")
+        name = models.Charfield(max_length=10)
+        ...
+        ...
+        cdt = models.DateTimeField(auto_add_now=True, verbose_name="Creation datetime")
                 
 
 **views.py**
         
-        from dateutil.relativedelta import relativedelta
-        from django.shortcuts import render_to_response
-        from django.template.context import RequestContext
-        
-        from models import Spam
-        
-        def render_chart(request):
-                if request.method == "GET":
-                        
-                        # Get a point in time we want to render chart from
-                        series_age = datetime.today() - relativedelta(months=3)
-                        
-                        # Create a fairly advanced QuerySet using:
-                        #  - filter() to get records newer than 'series_age'
-                        #  - extra() to cast a PostgreSQL 'timestampz' to 'date' which translates to a pyton date object
-                        #  - values() to extract fields of interest
-                        #  - annotate() to group aggregate Count into 'id__count'
-                        #  - order_by() to make the aggregate work
-                        qset = Spam.gcharts.filter(cdt__gt=series_age).extra(select={"date": "cdt::date"}) \
-                                                   .values("date").annotate(Count("id")).order_by()
-                        
-                        # Call the qset.to_json() method to output the data in json
-                        #  - labels is a dict which sets labels and the correct javascript data type for
-                        #    fields in the QuerySet. The javascript data types are automatically set, 
-                        #    except for extra fields, which needs to be specified in a dict as:
-                        #       {'extra_name': {'javascript data type': 'label for field'}}
-                        #  - order is an iterable which sets the column order in which the data should be
-                        #    rendered
-                        #  - formatting is a dict {'field_name': 'expression'}, where expression is a 
-                        #    valid string.format() expression.
-                        spam_json = qset.to_json(labels={"id__count": "Spam sold", "date": {"date": "Date"}},
-                                                 order=("date", "id__count"), 
-                                                 formatting={"id__count": "{0:d} units of spam"})
-                        
-                        return render_to_response("sales_overviews/spamreport.html, {"spam_data": spam_json},
-                                                  context_instance=RequestContext(request))
+    from dateutil.relativedelta import relativedelta
+    from django.shortcuts import render_to_response
+    from django.template.context import RequestContext
+    
+    from models import Spam
+    
+    def render_chart(request):
+        if request.method == "GET":
+                
+            # Get a point in time we want to render chart from
+            series_age = datetime.today() - relativedelta(months=3)
+            
+            # Create a fairly advanced QuerySet using:
+            #  - filter() to get records newer than 'series_age'
+            #  - extra() to cast a PostgreSQL 'timestampz' to 'date' which translates to a pyton date object
+            #  - values() to extract fields of interest
+            #  - annotate() to group aggregate Count into 'id__count'
+            #  - order_by() to make the aggregate work
+            qset = Spam.gcharts.filter(cdt__gt=series_age).extra(select={"date": "cdt::date"}) \
+                                       .values("date").annotate(Count("id")).order_by()
+            
+            # Call the qset.to_json() method to output the data in json
+            #  - labels is a dict which sets labels and the correct javascript data type for
+            #    fields in the QuerySet. The javascript data types are automatically set, 
+            #    except for extra fields, which needs to be specified in a dict as:
+            #       {'extra_name': {'javascript data type': 'label for field'}}
+            #  - order is an iterable which sets the column order in which the data should be
+            #    rendered
+            #  - formatting is a dict {'field_name': 'expression'}, where expression is a 
+            #    valid string.format() expression.
+            spam_json = qset.to_json(labels={"id__count": "Spam sold", "date": {"date": "Date"}},
+                                     order=("date", "id__count"), 
+                                     formatting={"id__count": "{0:d} units of spam"})
+            
+            return render_to_response("sales_overviews/spamreport.html, {"spam_data": spam_json},
+                                      context_instance=RequestContext(request))
 
 **spamreport.html**
 
-        ...
+    ...
 
-        {% load gcharts %}
+    {% load gcharts %}
 
-        {% gcharts %}
-                <!-- Global options for all charts -->
-                options = {
-                        width: 500,
-                        height: 300
-                };
-            
-                <!-- cloned option and adapted for "spam_opt" -->
-                spam_opt = _clone(options);
-                spam_opt.title = "Units of Spam sold last 3 month";
-            
-                {% options spam_opt %}
-                        kind: "ColumnChart",
-                        options: spam_opt,
-                {% endoptions %}
-        
-                {% render "spam_chart" "spam_data" "spam_opt" %}
-        
-        {% endgcharts %}
-        
-        <div id="spam_chart">
-            <!-- container for spam_data chart -->
-        </div>
-        
-        ...
+    {% gcharts %}
+        <!-- Global options for all charts -->
+        options = {
+            width: 500,
+            height: 300
+        };
+    
+        <!-- cloned option and adapted for "spam_opt" -->
+        spam_opt = _clone(options);
+        spam_opt.title = "Units of Spam sold last 3 month";
+    
+        {% options spam_opt %}
+            kind: "ColumnChart",
+            options: spam_opt,
+        {% endoptions %}
+
+        {% render "spam_chart" "spam_data" "spam_opt" %}
+    
+    {% endgcharts %}
+    
+    <div id="spam_chart">
+        <!-- container for spam_data chart -->
+    </div>
+    
+    ...
 
 Should output something like this.
 
