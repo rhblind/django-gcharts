@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
+
+import six
 import logging
 from django.db import models
 from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
 
-try:
-    import gviz_api
-except ImportError:
-    from gcharts.contrib import gviz_api
+from gcharts.contrib import gviz_api
 
 
 class _GChartsConfig(object):
@@ -68,8 +67,9 @@ class GChartsQuerySet(QuerySet):
     """
     def __init__(self, *args, **kwargs):
         super(GChartsQuerySet, self).__init__(*args, **kwargs)
-        
-    def javascript_field(self, field):
+
+    @staticmethod
+    def javascript_field(field):
         """
         Return the javascript data type for
         field
@@ -87,7 +87,7 @@ class GChartsQuerySet(QuerySet):
             ("TimeField"): "timeofday",
         }
         
-        for k, v in fields.iteritems():
+        for k, v in six.iteritems(fields):
             if field.get_internal_type() in k:
                 return v
         # Should never hit this
@@ -104,7 +104,7 @@ class GChartsQuerySet(QuerySet):
         if not isinstance(formatting, dict):
             raise Exception("formatting must be a dict")
         for row in self.values(*fields):
-            for field, frmt in formatting.iteritems():
+            for field, frmt in six.iteritems(formatting):
                 val = row[field]
                 frmt_val = frmt.format(val)
                 row.update({field: (val, frmt_val)})
@@ -120,7 +120,7 @@ class GChartsQuerySet(QuerySet):
         # resolve aggregates
         aggregates = getattr(self, "aggregate_names", None)
         if aggregates is not None:
-            for alias, aggregate_expr in self.query.aggregates.iteritems():
+            for alias, aggregate_expr in six.iteritems(self.query.aggregates):
                 label = labels.pop(alias, alias)
                 field_jstype = self.javascript_field(aggregate_expr.field)
                 table_description.update({alias: (field_jstype, label)})
@@ -131,7 +131,7 @@ class GChartsQuerySet(QuerySet):
         extra = getattr(self, "extra_names", None)
         valid_jstypes = ("string", "number", "boolean", "date", "datetime", "timeofday")
         if extra is not None:
-            for alias in self.query.extra.iterkeys():
+            for alias in six.iterkeys(self.query.extra):
                 try:
                     descr = labels.pop(alias)
                     if not (isinstance(descr, dict) and len(descr) == 1):
@@ -142,17 +142,19 @@ class GChartsQuerySet(QuerySet):
                                         ", ".join(valid_jstypes))
                     table_description.update({alias: (field_jstype, label)})
                 except KeyError:
-                    raise KeyError("No label found for extra field '%s'. Extra field labels must be configured as: labels={'extra_name': {'javascript type', 'label'}}" % alias)
-                except Exception, e:
-                    raise e
-        
+                    raise KeyError(
+                        "No label found for extra field '%s'. "
+                        "Extra field labels must be configured as: "
+                        "labels={'extra_name': {'javascript type', 'label'}}" % alias
+                    )
+
         # resolve other fields of interest
         fields = set(getattr(self, "_fields", [f.name for f in self.model._meta.fields]))
         
         # remove fields that has already been
         # put in the table_description
         def clean_parsed_fields():
-            for f in table_description.iterkeys():
+            for f in six.iterkeys(table_description):
                 if f in fields:
                     fields.remove(f)
         clean_parsed_fields()

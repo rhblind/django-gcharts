@@ -10,7 +10,7 @@ from django import template
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, VariableDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
 
 register = template.Library()
 
@@ -117,7 +117,7 @@ class RenderNode(template.Node):
         except VariableDoesNotExist:
             container = self.container
         return self.render.__doc__ % {"options": self.options, "container": container,
-                                      "src": self.data.var, "data": smart_unicode(self.data.resolve(context))}
+                                      "src": self.data.var, "data": smart_text(self.data.resolve(context))}
 
 
 @register.tag

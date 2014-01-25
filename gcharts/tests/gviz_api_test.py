@@ -15,9 +15,9 @@
 # limitations under the License.
 
 """Tests for the gviz_api module."""
+from __future__ import unicode_literals
 
-__author__ = "Amit Weinstein"
-
+import six
 import json
 from datetime import date
 from datetime import time
@@ -27,6 +27,9 @@ from django.test import TestCase
 
 from gcharts.contrib.gviz_api import DataTable
 from gcharts.contrib.gviz_api import DataTableException
+
+
+__author__ = "Amit Weinstein"
 
 
 class DataTableTest(TestCase):
@@ -53,14 +56,14 @@ class DataTableTest(TestCase):
         self.assertEqual(False, DataTable.CoerceValue(False, "boolean"))
         self.assertEqual(True, DataTable.CoerceValue(1, "boolean"))
         self.assertEqual(None, DataTable.CoerceValue(None, "boolean"))
-        self.assertEqual((False, u"a"),
+        self.assertEqual((False, "a"),
                          DataTable.CoerceValue((False, "a"), "boolean"))
 
         self.assertEqual(1, DataTable.CoerceValue(1, "number"))
         self.assertEqual(1., DataTable.CoerceValue(1., "number"))
         self.assertEqual(-5, DataTable.CoerceValue(-5, "number"))
         self.assertEqual(None, DataTable.CoerceValue(None, "number"))
-        self.assertEqual((5, u"5$"),
+        self.assertEqual((5, "5$"),
                          DataTable.CoerceValue((5, "5$"), "number"))
 
         self.assertEqual("-5", DataTable.CoerceValue(-5, "string"))
@@ -94,17 +97,17 @@ class DataTableTest(TestCase):
         the_strings = ["new\nline",
                        r"one\slash",
                        r"two\\slash",
-                       u"unicode eng",
-                       u"unicode \u05e2\u05d1\u05e8\u05d9\u05ea",
-                       u"unicode \u05e2\u05d1\u05e8\u05d9\u05ea".encode("utf-8"),
-                       u'"\u05e2\u05d1\\"\u05e8\u05d9\u05ea"']
+                       "unicode eng",
+                       "unicode \u05e2\u05d1\u05e8\u05d9\u05ea",
+                       "unicode \u05e2\u05d1\u05e8\u05d9\u05ea".encode("utf-8"),
+                       '"\u05e2\u05d1\\"\u05e8\u05d9\u05ea"']
         table = DataTable([("a", "string")],
                           [[x] for x in the_strings])
 
         json_obj = json.loads(table.ToJSon())
         for i, row in enumerate(json_obj["rows"]):
             utf8_str = the_strings[i]
-            if isinstance(utf8_str, unicode):
+            if isinstance(utf8_str, six.text_type):
                 utf8_str = utf8_str.encode("utf-8")
 
             out_str = row["c"][0]["v"]
@@ -235,9 +238,9 @@ class DataTableTest(TestCase):
                           table.AppendData, [[1, "a", True]])
         self.assertRaises(DataTableException,
                           table.AppendData, {1: ["a"], 2: ["b"]})
-        self.assertEquals(None, table.AppendData([[1, "a"], [2, "b"]]))
+        self.assertEqual(None, table.AppendData([[1, "a"], [2, "b"]]))
         self.assertEqual(2, table.NumberOfRows())
-        self.assertEquals(None, table.AppendData([[3, "c"], [4]]))
+        self.assertEqual(None, table.AppendData([[3, "c"], [4]]))
         self.assertEqual(4, table.NumberOfRows())
 
         table = DataTable({"a": "number", "b": "string"})
@@ -246,7 +249,7 @@ class DataTableTest(TestCase):
                           table.AppendData, [[1, "a"]])
         self.assertRaises(DataTableException,
                           table.AppendData, {5: {"b": "z"}})
-        self.assertEquals(None, table.AppendData([{"a": 1, "b": "z"}]))
+        self.assertEqual(None, table.AppendData([{"a": 1, "b": "z"}]))
         self.assertEqual(1, table.NumberOfRows())
 
         table = DataTable({("a", "number"): [("b", "string")]})
@@ -255,7 +258,7 @@ class DataTableTest(TestCase):
                           table.AppendData, [[1, "a"]])
         self.assertRaises(DataTableException,
                           table.AppendData, {5: {"b": "z"}})
-        self.assertEquals(None, table.AppendData({5: ["z"], 6: ["w"]}))
+        self.assertEqual(None, table.AppendData({5: ["z"], 6: ["w"]}))
         self.assertEqual(2, table.NumberOfRows())
 
         table = DataTable({("a", "number"): {"b": "string", "c": "number"}})
@@ -264,7 +267,7 @@ class DataTableTest(TestCase):
                           table.AppendData, [[1, "a"]])
         self.assertRaises(DataTableException,
                           table.AppendData, {1: ["a", 2]})
-        self.assertEquals(None, table.AppendData({5: {"b": "z", "c": 6},
+        self.assertEqual(None, table.AppendData({5: {"b": "z", "c": 6},
                                                   7: {"c": 8},
                                                   9: {}}))
         self.assertEqual(3, table.NumberOfRows())
@@ -275,17 +278,17 @@ class DataTableTest(TestCase):
                            [None, "z", time(1, 2, 3)],
                            [(2, "2$"), "w", time(2, 3, 4)]])
         self.assertEqual(3, table.NumberOfRows())
-        self.assertEqual((u"var mytab = new google.visualization.DataTable();\n"
-                          u"mytab.addColumn(\"number\", \"A'\", \"a\");\n"
-                          u"mytab.addColumn(\"string\", \"b\\\"\", \"b\\\"\");\n"
-                          u"mytab.addColumn(\"timeofday\", \"c\", \"c\");\n"
-                          u"mytab.addRows(3);\n"
-                          u"mytab.setCell(0, 0, 1);\n"
-                          u"mytab.setCell(1, 1, \"z\");\n"
-                          u"mytab.setCell(1, 2, [1,2,3]);\n"
-                          u"mytab.setCell(2, 0, 2, \"2$\");\n"
-                          u"mytab.setCell(2, 1, \"w\");\n"
-                          u"mytab.setCell(2, 2, [2,3,4]);\n"),
+        self.assertEqual(("var mytab = new google.visualization.DataTable();\n"
+                          "mytab.addColumn(\"number\", \"A'\", \"a\");\n"
+                          "mytab.addColumn(\"string\", \"b\\\"\", \"b\\\"\");\n"
+                          "mytab.addColumn(\"timeofday\", \"c\", \"c\");\n"
+                          "mytab.addRows(3);\n"
+                          "mytab.setCell(0, 0, 1);\n"
+                          "mytab.setCell(1, 1, \"z\");\n"
+                          "mytab.setCell(1, 2, [1,2,3]);\n"
+                          "mytab.setCell(2, 0, 2, \"2$\");\n"
+                          "mytab.setCell(2, 1, \"w\");\n"
+                          "mytab.setCell(2, 2, [2,3,4]);\n"),
                          table.ToJSCode("mytab"))
 
         table = DataTable({("a", "number"): {"b": "date", "c": "datetime"}},
@@ -316,14 +319,14 @@ class DataTableTest(TestCase):
                     "rows":
                         [{"c": [{"v": 1}, None, None]},
                          {"c": [None, {"v": "z"}, {"v": True}]},
-                         {"c": [None, {"v": u"\u05d0"}, None]},
-                         {"c": [None, {"v": u"\u05d1"}, None]}]}
+                         {"c": [None, {"v": "\u05d0"}, None]},
+                         {"c": [None, {"v": "\u05d1"}, None]}]}
 
         table = DataTable([("a", "number", "A"), "b", ("c", "boolean")],
                           [[1],
                            [None, "z", True],
-                           [None, u"\u05d0"],
-                           [None, u"\u05d1".encode("utf-8")]])
+                           [None, "\u05d0"],
+                           [None, "\u05d1".encode("utf-8")]])
         self.assertEqual(4, table.NumberOfRows())
         self.assertEqual(json.dumps(json_obj,
                                     separators=(",", ":"),
@@ -431,7 +434,7 @@ class DataTableTest(TestCase):
         self.assertEqual(init_data_csv, table.ToCsv())
         table.AppendData([[-1, "w", False]])
         init_data_csv = "%s%s\r\n" % (init_data_csv, "-1,w,false")
-        self.assertEquals(init_data_csv, table.ToCsv())
+        self.assertEqual(init_data_csv, table.ToCsv())
 
         init_data_csv = "\r\n".join([
             "T,d,dt",
@@ -534,36 +537,36 @@ class DataTableTest(TestCase):
 
         json_response = table.ToJSonResponse(req_id=req_id)
 
-        self.assertEquals(json_response.find(start_str_default + "("), 0)
+        self.assertEqual(json_response.find(start_str_default + "("), 0)
 
         json_response_obj = json.loads(json_response[len(start_str_default) + 1:-2])
-        self.assertEquals(json_response_obj["table"], json.loads(json_str))
-        self.assertEquals(json_response_obj["version"], "0.6")
-        self.assertEquals(json_response_obj["reqId"], str(req_id))
-        self.assertEquals(json_response_obj["status"], "ok")
+        self.assertEqual(json_response_obj["table"], json.loads(json_str))
+        self.assertEqual(json_response_obj["version"], "0.6")
+        self.assertEqual(json_response_obj["reqId"], six.text_type(req_id))
+        self.assertEqual(json_response_obj["status"], "ok")
 
         json_response = table.ToJSonResponse(req_id=req_id,
                                              response_handler=start_str_handler)
 
-        self.assertEquals(json_response.find(start_str_handler + "("), 0)
+        self.assertEqual(json_response.find(start_str_handler + "("), 0)
         json_response_obj = json.loads(json_response[len(start_str_handler) + 1:-2])
-        self.assertEquals(json_response_obj["table"], json.loads(json_str))
+        self.assertEqual(json_response_obj["table"], json.loads(json_str))
 
     def testToResponse(self):
         description = ["col1", "col2", "col3"]
         data = [("1", "2", "3"), ("a", "b", "c"), ("One", "Two", "Three")]
         table = DataTable(description, data)
 
-        self.assertEquals(table.ToResponse(), table.ToJSonResponse())
-        self.assertEquals(table.ToResponse(tqx="out:csv"), table.ToCsv())
-        self.assertEquals(table.ToResponse(tqx="out:html"), table.ToHtml())
+        self.assertEqual(table.ToResponse(), table.ToJSonResponse())
+        self.assertEqual(table.ToResponse(tqx="out:csv"), table.ToCsv())
+        self.assertEqual(table.ToResponse(tqx="out:html"), table.ToHtml())
         self.assertRaises(DataTableException, table.ToResponse, tqx="version:0.1")
-        self.assertEquals(table.ToResponse(tqx="reqId:4;responseHandler:handle"),
+        self.assertEqual(table.ToResponse(tqx="reqId:4;responseHandler:handle"),
                           table.ToJSonResponse(req_id=4, response_handler="handle"))
-        self.assertEquals(table.ToResponse(tqx="out:csv;reqId:4"), table.ToCsv())
-        self.assertEquals(table.ToResponse(order_by="col2"),
+        self.assertEqual(table.ToResponse(tqx="out:csv;reqId:4"), table.ToCsv())
+        self.assertEqual(table.ToResponse(order_by="col2"),
                           table.ToJSonResponse(order_by="col2"))
-        self.assertEquals(table.ToResponse(tqx="out:html",
+        self.assertEqual(table.ToResponse(tqx="out:html",
                                            columns_order=("col3", "col2", "col1")),
                           table.ToHtml(columns_order=("col3", "col2", "col1")))
         self.assertRaises(ValueError, table.ToResponse, tqx="SomeWrongTqxFormat")
