@@ -4,27 +4,32 @@
 from distutils.core import setup
 
 setup(
-    name = "django-gcharts",
-    version = "1.2",
-    description = "Provides a QuerySet, Manager and other tools for easy integration with the Google Visualization API",
-    long_description = open("README.md").read(),
-    keywords = "django google charts graph plot",
-    license = open("LICENSE.md").read(),
-    author = "Rolf Håvard Blindheim",
-    author_email = "rhblind@gmail.com",
-    url = "http://github.com/rhblind/django-gcharts",
-    packages = [
+    name="django-gcharts",
+    version="1.3",
+    description="Provides a QuerySet, Manager and other tools for easy integration with the Google Visualization API",
+    long_description=open("README.md").read(),
+    keywords="django google charts graph plot",
+    license=open("LICENSE.md").read(),
+    author="Rolf Håvard Blindheim",
+    author_email="rhblind@gmail.com",
+    url="http://github.com/rhblind/django-gcharts",
+    download_url="https://github.com/rhblind/django-gcharts.git",
+    install_requires=[
+        "six",
+        "python-dateutil"
+    ],
+    packages=[
         "gcharts",
         "gcharts.tests",
         "gcharts.contrib",
         "gcharts.templatetags",
     ],
-    package_data = {
+    package_data={
         "gcharts": [
             "templates/gcharts/*.html"
         ]
     },
-    classifiers = [
+    classifiers=[
         "Operating System :: OS Independent",
         "Development Status :: 4 - Beta",
         "Environment :: Web Environment",

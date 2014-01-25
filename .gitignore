@@ -17,4 +17,6 @@ _svn
 .pydevproject
 .settings
 .idea
+build/*
+dist/*
 docs/_build
