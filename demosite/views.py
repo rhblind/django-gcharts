@@ -14,7 +14,7 @@ def home(request):
     if request.method == "GET":
         
         # GeoChart demo
-        geo_qset = GeoData.gcharts.order_by("-population").all()[:100]
+        geo_qset = GeoData.objects.order_by("-population").all()[:100]
         geo_data = geo_qset.values("country_name", "population", "fertility_rate") \
                     .to_json(labels={"country_name": "Country",
                                      "population": "Population",
@@ -25,7 +25,7 @@ def home(request):
         
         # AreaChart
         area_series_age = datetime.today() - relativedelta(months=1)
-        area_qset = OtherData.gcharts.filter(date__gte=area_series_age) \
+        area_qset = OtherData.objects.filter(date__gte=area_series_age) \
                         .values("date").annotate(Sum("number1")) \
                         .annotate(Sum("number2")).order_by()
         area_data = area_qset.order_by("-date").to_json(order=("date", "number1__sum",
@@ -34,7 +34,7 @@ def home(request):
                                                                 "number2__sum": "Another number"})
         
         # PieChart
-        pie_qset = OtherData.gcharts.values("name").annotate(Sum("number1")).order_by()
+        pie_qset = OtherData.objects.values("name").annotate(Sum("number1")).order_by()
         pie_data = pie_qset.order_by("name").to_json(order=("name", "number1__sum"),
                              formatting={"number1__sum": "{0:d} Sum total"})
         
@@ -43,7 +43,7 @@ def home(request):
         
         # Table
         table_series_age = datetime.today() - relativedelta(months=3)
-        table_qset = OtherData.gcharts.filter(date__gte=table_series_age) \
+        table_qset = OtherData.objects.filter(date__gte=table_series_age) \
                 .values("date").annotate(num_baked=Sum("number1")) \
                 .annotate(num_eaten=Sum("number2")).order_by("-date")
         table_data = table_qset.to_json(labels={"date": "Date",
