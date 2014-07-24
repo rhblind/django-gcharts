@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+
 import logging
+
 from django.db import models
 from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
+from django.utils import six
+
 
 try:
     import gviz_api
@@ -56,7 +60,7 @@ class GChartsManager(models.Manager):
         return self.get_query_set().to_json(order, labels, formatting, properties)
     
     def to_json_response(self, order=None, labels=None, formatting=None, properties=None,
-                     req_id=0, handler="google.visualization.Query.setResponse"):
+                         req_id=0, handler="google.visualization.Query.setResponse"):
         return self.get_query_set().to_json_response(order, labels, formatting, properties,
                                                      req_id, handler)
     
@@ -68,8 +72,9 @@ class GChartsQuerySet(QuerySet):
     """
     def __init__(self, *args, **kwargs):
         super(GChartsQuerySet, self).__init__(*args, **kwargs)
-        
-    def javascript_field(self, field):
+
+    @staticmethod
+    def javascript_field(field):
         """
         Return the javascript data type for
         field
@@ -87,7 +92,7 @@ class GChartsQuerySet(QuerySet):
             ("TimeField"): "timeofday",
         }
         
-        for k, v in fields.iteritems():
+        for k, v in six.iteritems(fields):
             if field.get_internal_type() in k:
                 return v
         # Should never hit this
@@ -104,7 +109,7 @@ class GChartsQuerySet(QuerySet):
         if not isinstance(formatting, dict):
             raise Exception("formatting must be a dict")
         for row in self.values(*fields):
-            for field, frmt in formatting.iteritems():
+            for field, frmt in six.iteritems(formatting):
                 val = row[field]
                 frmt_val = frmt.format(val)
                 row.update({field: (val, frmt_val)})
@@ -120,7 +125,7 @@ class GChartsQuerySet(QuerySet):
         # resolve aggregates
         aggregates = getattr(self, "aggregate_names", None)
         if aggregates is not None:
-            for alias, aggregate_expr in self.query.aggregates.iteritems():
+            for alias, aggregate_expr in six.iteritems(self.query.aggregates):
                 label = labels.pop(alias, alias)
                 field_jstype = self.javascript_field(aggregate_expr.field)
                 table_description.update({alias: (field_jstype, label)})
@@ -131,28 +136,29 @@ class GChartsQuerySet(QuerySet):
         extra = getattr(self, "extra_names", None)
         valid_jstypes = ("string", "number", "boolean", "date", "datetime", "timeofday")
         if extra is not None:
-            for alias in self.query.extra.iterkeys():
+            for alias in six.iterkeys(self.query.extra):
                 try:
                     descr = labels.pop(alias)
                     if not (isinstance(descr, dict) and len(descr) == 1):
                         raise Exception("Field description must be a dict and must contain exactly one element.")
                     field_jstype, label = descr.popitem()
                     if field_jstype not in valid_jstypes:
-                        raise Exception("Invalid javascript type. Valid types are %s." % \
+                        raise Exception("Invalid javascript type. Valid types are %s." %
                                         ", ".join(valid_jstypes))
                     table_description.update({alias: (field_jstype, label)})
                 except KeyError:
-                    raise KeyError("No label found for extra field '%s'. Extra field labels must be configured as: labels={'extra_name': {'javascript type', 'label'}}" % alias)
-                except Exception, e:
-                    raise e
-        
+                    raise KeyError(
+                        "No label found for extra field '%s'. Extra field labels must be configured as: "
+                        "labels={'extra_name': {'javascript type', 'label'}}" % alias
+                    )
+
         # resolve other fields of interest
         fields = set(getattr(self, "_fields", [f.name for f in self.model._meta.fields]))
         
         # remove fields that has already been
         # put in the table_description
         def clean_parsed_fields():
-            for f in table_description.iterkeys():
+            for f in six.iterkeys(table_description):
                 if f in fields:
                     fields.remove(f)
         clean_parsed_fields()
@@ -182,7 +188,7 @@ class GChartsQuerySet(QuerySet):
         
         clean_parsed_fields()
         if fields:
-            logger.warning("Could not create table description for the following fields %s:" % \
+            logger.warning("Could not create table description for the following fields %s:" %
                            ", ".join(fields))
         return table_description
         
@@ -192,12 +198,10 @@ class GChartsQuerySet(QuerySet):
     def values_list(self, *fields, **kwargs):
         flat = kwargs.pop("flat", False)
         if kwargs:
-            raise TypeError("Unexpected keyword arguments to values_list: %s"
-                    % (kwargs.keys(),))
+            raise TypeError("Unexpected keyword arguments to values_list: %s" % (kwargs.keys(),))
         if flat and len(fields) > 1:
             raise TypeError("'flat' is not valid when values_list is called with more than one field.")
-        return self._clone(klass=GChartsValuesListQuerySet, setup=True, flat=flat,
-                _fields=fields)
+        return self._clone(klass=GChartsValuesListQuerySet, setup=True, flat=flat, _fields=fields)
         
     #
     # Methods which serialize data to various outputs.
@@ -357,7 +361,7 @@ class GChartsQuerySet(QuerySet):
         return data_table.ToJSon(columns_order=order)
     
     def to_json_response(self, order=None, labels=None, formatting=None, properties=None,
-                 req_id=0, handler="google.visualization.Query.setResponse"):
+                         req_id=0, handler="google.visualization.Query.setResponse"):
         """
         Does _not_ return a new QuerySet.
         Writes a table as a JSON response that can be returned as-is to a client.
@@ -388,29 +392,7 @@ class GChartsQuerySet(QuerySet):
         else:
             data = self.values(*fields)
         data_table = gviz_api.DataTable(table_descr, data, properties)
-        return data_table.ToJSonResponse(columns_order=order,
-                             req_id=req_id, response_handler=handler)
-    
-    #
-    # Methods that modifies database are not allowed
-    #
-    def create(self, *kwargs):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
-    
-    def bulk_create(self, objs):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
-    
-    def get_or_create(self, *kwargs):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
-    
-    def delete(self):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
-    
-    def update(self, *kwargs):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
-    
-    def _update(self, *kwargs):
-        raise NotImplementedError("GChartsQuerySet is not able to modify the database")
+        return data_table.ToJSonResponse(columns_order=order, req_id=req_id, response_handler=handler)
     
 
 class GChartsValuesQuerySet(GChartsQuerySet, ValuesQuerySet):
